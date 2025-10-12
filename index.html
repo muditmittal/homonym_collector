@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homonym Collector</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="header-left">
+                    <h1><i class="fas fa-spell-check"></i> Homonym Collector</h1>
+                </div>
+                <div class="header-right">
+                    <button id="newCollection" class="btn-new-collection">
+                        <i class="fas fa-plus"></i> New Collection
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="search-section">
+            <div class="input-group">
+                <input type="text" id="searchInput" placeholder="Search collection or add new homonyms..." />
+                <i class="fas fa-search search-icon"></i>
+                <button id="addButton" class="btn-add-inline" title="Add new homonyms">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            <div id="suggestions" class="suggestions-container hidden"></div>
+            <div id="noResults" class="no-results hidden">
+                <p>No homonyms found in your collection.</p>
+                <button id="findHomonymsBtn" class="btn-primary">
+                    <i class="fas fa-plus"></i> Find homonyms for "<span id="searchTerm"></span>"
+                </button>
+            </div>
+        </div>
+
+        <div class="collection-section">
+            <div class="collection-header">
+                <div class="collection-title">
+                    <h2 id="collectionName">Oshi's Homonyms</h2>
+                </div>
+                <div class="collection-menu">
+                    <span id="collectionCount" class="count">0 homonyms</span>
+                    <button id="collectionMenuBtn" class="btn-menu" title="Collection options">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <div id="collectionDropdown" class="dropdown-menu hidden">
+                        <button onclick="app.renameCollection()">
+                            Rename Collection
+                        </button>
+                        <button onclick="app.duplicateCollection()">
+                            Duplicate Collection
+                        </button>
+                        <button onclick="app.deleteCollection()" class="delete-option">
+                            Delete Collection
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="homonymList" class="homonym-list">
+                <div class="empty-state">
+                    <i class="fas fa-book-open"></i>
+                    <p>No homonyms added yet. Start by searching above!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingModal" class="modal hidden" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button id="closeLoading" class="close-btn" title="Close loading">&times;</button>
+            </div>
+            <div class="loading-spinner"></div>
+            <p>Finding homonyms and definitions...</p>
+            <p class="loading-subtext">This might take a few seconds. Click X to cancel.</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
