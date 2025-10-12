@@ -290,6 +290,24 @@ header {
     border-radius: 6px;
 }
 
+/* Error item styling for invalid words */
+.suggestion-word-item.error-item {
+    background: #fff5f5;
+    border-left-color: #dc3545;
+    padding: 1rem;
+}
+
+.suggestion-word-item.error-item:hover {
+    background: #ffeaea;
+}
+
+.error-icon {
+    color: #dc3545;
+    font-size: 1.2rem;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
 .suggestions-header {
     display: flex;
     justify-content: space-between;

@@ -388,9 +388,39 @@ class HomonymApp {
             'which': ['witch']
         };
 
+        // First, validate that the input word exists in the dictionary
+        let isValidWord = false;
+        let wordDefinition = '';
+        
+        try {
+            wordDefinition = await this.getDefinition(word);
+            isValidWord = wordDefinition && !wordDefinition.includes('No definition found');
+        } catch (error) {
+            console.log(`Word validation failed for "${word}":`, error);
+        }
+        
+        // Case 1: Invalid word - return error state
+        if (!isValidWord) {
+            return [{
+                word: word,
+                pronunciation: 'Invalid word',
+                definition: `"${word}" was not found in the dictionary. Please check the spelling.`,
+                isError: true,
+                isOriginal: true
+            }];
+        }
+
         const suggestions = [];
         
-        // Check our common homonyms database first
+        // Add the original word first (always include it)
+        suggestions.push({
+            word: word,
+            pronunciation: 'Loading...',
+            definition: wordDefinition,
+            isOriginal: true
+        });
+        
+        // Check our curated database for homonyms
         if (commonHomonyms[word]) {
             for (const homonym of commonHomonyms[word]) {
                 // Validate each suggestion exists in dictionary and get its definition
@@ -408,81 +438,52 @@ class HomonymApp {
                 }
             }
         }
-
-        // If no common homonyms found, validate the input word first
-        if (suggestions.length === 0) {
-            // Try to validate the input word exists in dictionary
-            try {
-                const inputDefinition = await this.getDefinition(word);
-                if (inputDefinition && !inputDefinition.includes('No definition found')) {
-                    suggestions.push({
-                        word: 'No common homonyms found',
-                        pronunciation: 'Try a different word',
-                        definition: `"${word}" is a valid word, but we don't have homonyms for it in our database.`
-                    });
-                } else {
-                    suggestions.push({
-                        word: 'Word not found',
-                        pronunciation: 'Check spelling',
-                        definition: `"${word}" was not found in the dictionary. Please check the spelling.`
-                    });
-                }
-            } catch (error) {
-                suggestions.push({
-                    word: 'No common homonyms found',
-                    pronunciation: 'Try a different word',
-                    definition: 'This word is not in our curated homonym database.'
-                });
-            }
-        }
-
-        return suggestions.slice(0, 5);
+        
+        return suggestions;
     }
 
     displaySuggestions(originalWord, suggestions) {
         const suggestionsContainer = document.getElementById('suggestions');
         
-        // Check if we have any real suggestions (not just "no homonyms found")
-        const realSuggestions = suggestions.filter(s => !s.word.includes('no homonyms found') && !s.word.includes('Word not found'));
+        // Check if this is an error case (invalid word)
+        const isError = suggestions.length === 1 && suggestions[0].isError;
         
-        if (realSuggestions.length === 0) {
-            // No real suggestions found - show the searched word only
+        if (isError) {
+            // Case 1: Invalid word
+            const errorSuggestion = suggestions[0];
             suggestionsContainer.innerHTML = `
                 <div class="homonym-group suggestion-group">
                     <div class="homonym-header">
-                        <span class="homonym-pronunciation">Homonym suggestions for "${originalWord}"</span>
+                        <span class="homonym-pronunciation">Word validation for "${originalWord}"</span>
                         <button class="btn-delete" onclick="app.closeSuggestions()">
                             <i class="fas fa-times"></i>
                             <div class="custom-tooltip">Close suggestions</div>
                         </button>
                     </div>
                     <div class="words-container">
-                        <div class="word-item suggestion-word-item">
-                            <input type="checkbox" checked data-word="${originalWord}" class="suggestion-checkbox">
+                        <div class="word-item suggestion-word-item error-item">
+                            <i class="fas fa-exclamation-triangle error-icon"></i>
                             <div class="word-info">
-                                <h3>${originalWord}</h3>
-                                <p class="word-definition">Loading definition...</p>
+                                <h3>${errorSuggestion.word}</h3>
+                                <p class="word-definition">${errorSuggestion.definition}</p>
                             </div>
                         </div>
-                        <div class="no-match-message">
-                            <p><em>No match found.</em></p>
-                        </div>
                         <button class="btn-add suggestion-add-btn" onclick="app.addHomonymGroup('${originalWord}', [])">
-                            <i class="fas fa-plus"></i> Manually add homonym
+                            <i class="fas fa-plus"></i> Manually add word anyway
                         </button>
                     </div>
                 </div>
             `;
         } else {
-            // We have real suggestions - show suggested words + searched word
-            // Sort all words alphabetically (suggestions + searched word)
-            const allWords = [...realSuggestions, { 
-                word: originalWord, 
-                pronunciation: 'Loading...', 
-                definition: 'Loading definition...' 
-            }];
+            // Case 2 & 3: Valid word (with or without homonyms)
+            const originalWordData = suggestions.find(s => s.isOriginal);
+            const homonymSuggestions = suggestions.filter(s => !s.isOriginal);
+            const hasHomonyms = homonymSuggestions.length > 0;
             
-            allWords.sort((a, b) => a.word.toLowerCase().localeCompare(b.word.toLowerCase()));
+            // Sort all suggestions alphabetically (original word + homonyms)
+            const allSuggestions = [...suggestions].sort((a, b) => 
+                a.word.toLowerCase().localeCompare(b.word.toLowerCase())
+            );
             
             suggestionsContainer.innerHTML = `
                 <div class="homonym-group suggestion-group">
@@ -494,33 +495,22 @@ class HomonymApp {
                         </button>
                     </div>
                     <div class="words-container">
-                        ${allWords.map(suggestion => {
-                            if (suggestion.word === originalWord) {
-                                // This is the searched word
-                                return `
-                                    <div class="word-item suggestion-word-item">
-                                        <input type="checkbox" checked data-word="${suggestion.word}" class="suggestion-checkbox">
-                                        <div class="word-info">
-                                            <h3>${suggestion.word}</h3>
-                                            <p class="word-definition">Loading definition...</p>
-                                        </div>
-                                    </div>
-                                `;
-                            } else {
-                                // This is a suggested homonym
-                                return `
-                                    <div class="word-item suggestion-word-item">
-                                        <input type="checkbox" checked data-word="${suggestion.word}" class="suggestion-checkbox">
-                                        <div class="word-info">
-                                            <h3>${suggestion.word}</h3>
-                                            <p class="word-definition">${suggestion.definition || 'Loading definition...'}</p>
-                                        </div>
-                                    </div>
-                                `;
-                            }
-                        }).join('')}
-                        <button class="btn-add suggestion-add-btn" onclick="app.addHomonymGroup('${originalWord}', ${JSON.stringify(realSuggestions)})">
-                            <i class="fas fa-plus"></i> Add homonym
+                        ${allSuggestions.map(suggestion => `
+                            <div class="word-item suggestion-word-item">
+                                <input type="checkbox" checked data-word="${suggestion.word}" class="suggestion-checkbox">
+                                <div class="word-info">
+                                    <h3>${suggestion.word}</h3>
+                                    <p class="word-definition">${suggestion.definition || 'Loading definition...'}</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                        ${!hasHomonyms ? `
+                            <div class="no-match-message">
+                                <p><em>No homonym suggestions found for "${originalWord}".</em></p>
+                            </div>
+                        ` : ''}
+                        <button class="btn-add suggestion-add-btn" onclick="app.addHomonymGroup('${originalWord}', ${JSON.stringify(homonymSuggestions)})">
+                            <i class="fas fa-plus"></i> ${hasHomonyms ? 'Add homonym' : 'Manually add homonym'}
                         </button>
                     </div>
                 </div>
@@ -529,35 +519,30 @@ class HomonymApp {
         
         suggestionsContainer.classList.remove('hidden');
 
-        // Fetch definition and pronunciation for the searched word
-        this.fetchDataForSearchedWord(originalWord);
-        
-        // Start fetching pronunciations for suggested words (if any)
-        if (realSuggestions.length > 0) {
-            this.fetchDataInBackground(realSuggestions);
+        // Fetch pronunciation data for all valid words
+        if (!isError) {
+            suggestions.forEach(suggestion => {
+                if (suggestion.word && !suggestion.isError) {
+                    this.fetchPronunciationForWord(suggestion.word);
+                }
+            });
         }
     }
 
-    async fetchDataForSearchedWord(word) {
+    async fetchPronunciationForWord(word) {
         try {
-            // Fetch definition and pronunciation for the searched word
-            const definition = await this.getDefinition(word);
             const pronunciation = await this.getPhonetic(word);
-            
-            // Update the searched word's display in suggestions
-            const suggestionWordItems = document.querySelectorAll('.suggestion-word-item');
-            suggestionWordItems.forEach(element => {
-                const checkbox = element.querySelector('.suggestion-checkbox');
-                const wordH3 = element.querySelector('.word-info h3');
-                if (checkbox && wordH3 && checkbox.getAttribute('data-word') === word) {
-                    const definitionP = element.querySelector('.word-definition');
-                    if (definitionP) {
-                        definitionP.textContent = definition;
-                    }
+            // Update pronunciation in the suggestions UI
+            const suggestionItems = document.querySelectorAll('.suggestion-word-item');
+            suggestionItems.forEach(item => {
+                const checkbox = item.querySelector('.suggestion-checkbox');
+                if (checkbox && checkbox.getAttribute('data-word') === word) {
+                    // We could update pronunciation display here if needed
+                    // For now, pronunciations are shown in the header
                 }
             });
         } catch (error) {
-            console.error(`Error fetching data for searched word ${word}:`, error);
+            console.log(`Failed to fetch pronunciation for ${word}:`, error);
         }
     }
 
