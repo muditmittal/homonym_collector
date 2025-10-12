@@ -12,6 +12,14 @@ class HomonymApp {
         // Ensure clean state - no loading, no errors
         this.clearAllMessages();
         console.log('Constructor completed successfully');
+        
+        // Refresh definitions in background to ensure consistency
+        this.refreshAllDefinitions().then(updated => {
+            if (updated) {
+                console.log('Definitions refreshed, re-rendering homonyms');
+                this.renderHomonyms();
+            }
+        });
     }
 
     forceHideLoading() {
@@ -142,6 +150,8 @@ class HomonymApp {
         homonymGroups.forEach(group => {
             group.style.display = 'block';
         });
+        // Reset count to show total homonyms
+        this.updateCollectionCount();
     }
 
     async findHomonyms(word) {
@@ -759,19 +769,22 @@ class HomonymApp {
     filterHomonyms(searchTerm) {
         const homonymGroups = document.querySelectorAll('.homonym-group');
         const term = searchTerm.toLowerCase();
-        let hasResults = false;
+        let visibleCount = 0;
 
         homonymGroups.forEach(group => {
             const text = group.textContent.toLowerCase();
             if (text.includes(term)) {
                 group.style.display = 'block';
-                hasResults = true;
+                visibleCount++;
             } else {
                 group.style.display = 'none';
             }
         });
 
-        return hasResults;
+        // Update count to show matches instead of total
+        this.updateCollectionCount(visibleCount, true);
+        
+        return visibleCount > 0;
     }
 
     deleteHomonymGroup(id) {
@@ -873,6 +886,35 @@ class HomonymApp {
         }
     }
 
+    async refreshAllDefinitions() {
+        console.log('Refreshing all definitions with API data...');
+        let updated = false;
+        
+        for (let group of this.homonyms) {
+            for (let wordObj of group.words) {
+                try {
+                    const apiDefinition = await this.getDefinition(wordObj.word);
+                    if (apiDefinition && !apiDefinition.includes('No definition found')) {
+                        if (wordObj.definition !== apiDefinition) {
+                            console.log(`Updating definition for "${wordObj.word}"`);
+                            wordObj.definition = apiDefinition;
+                            updated = true;
+                        }
+                    }
+                } catch (error) {
+                    console.log(`Could not update definition for "${wordObj.word}":`, error);
+                }
+            }
+        }
+        
+        if (updated) {
+            this.saveToStorage();
+            console.log('Definitions updated and saved to storage');
+            return true;
+        }
+        return false;
+    }
+
     loadCompleteCollection() {
         console.log('Loading complete collection of 78 homonym groups...');
         return [
@@ -880,10 +922,13 @@ class HomonymApp {
         ];
     }
 
-    updateCollectionCount() {
-        const count = this.homonyms.length;
+    updateCollectionCount(count = null, isFiltered = false) {
+        const displayCount = count !== null ? count : this.homonyms.length;
+        const label = isFiltered ? 'match' : 'homonym';
+        const pluralLabel = isFiltered ? 'matches' : 'homonyms';
+        
         document.getElementById('collectionCount').textContent = 
-            `${count} ${count === 1 ? 'homonym' : 'homonyms'}`;
+            `${displayCount} ${displayCount === 1 ? label : pluralLabel}`;
     }
 
     saveToStorage() {
