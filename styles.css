@@ -268,6 +268,19 @@ header {
     line-height: 1.4;
 }
 
+.no-match-message {
+    text-align: center;
+    padding: 1rem;
+    color: #999;
+    font-style: italic;
+    border-top: 1px solid #e1e5e9;
+    margin-top: 0.5rem;
+}
+
+.no-match-message p {
+    margin: 0;
+}
+
 .btn-add {
     background: #28a745;
     color: white;

@@ -436,32 +436,7 @@ class HomonymApp {
         const realSuggestions = suggestions.filter(s => !s.word.includes('no homonyms found') && !s.word.includes('Word not found'));
         
         if (realSuggestions.length === 0) {
-            // No real suggestions found
-            const errorSuggestion = suggestions[0] || { word: 'No homonyms found', definition: 'Try a different word' };
-            suggestionsContainer.innerHTML = `
-                <div class="suggestions-header">
-                    <h3>${errorSuggestion.word} for "${originalWord}"</h3>
-                    <button class="close-suggestions" onclick="app.closeSuggestions()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="no-suggestions-content">
-                    <p>${errorSuggestion.definition}</p>
-                    <p><strong>You can still add it to your collection:</strong></p>
-                    <div class="suggestion-item">
-                        <div>
-                            <span class="suggestion-word">${originalWord}</span>
-                            <span class="suggestion-pronunciation">Loading...</span>
-                        </div>
-                        <input type="checkbox" checked data-word="${originalWord}">
-                    </div>
-                    <button class="btn-add" style="margin-top: 1rem;" onclick="app.addHomonymGroup('${originalWord}', [])">
-                        <i class="fas fa-plus"></i> Add "${originalWord}" as Homonym
-                    </button>
-                </div>
-            `;
-        } else {
-            // We have real suggestions
+            // No real suggestions found - show the searched word only
             suggestionsContainer.innerHTML = `
                 <div class="suggestions-header">
                     <h3>Homonym suggestions for "${originalWord}":</h3>
@@ -469,13 +444,51 @@ class HomonymApp {
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <p style="margin-bottom: 1rem; color: #666; font-size: 0.9rem;">
-                    Select words to include in your homonym group.
-                </p>
             `;
 
             const suggestionsList = document.createElement('div');
             
+            // Show the searched word with its details
+            const searchedWordItem = document.createElement('div');
+            searchedWordItem.className = 'suggestion-item';
+            searchedWordItem.innerHTML = `
+                <div>
+                    <span class="suggestion-word">${originalWord}</span>
+                    <span class="suggestion-pronunciation">Loading...</span>
+                    <p class="suggestion-definition">Loading definition...</p>
+                </div>
+                <input type="checkbox" checked data-word="${originalWord}">
+            `;
+            suggestionsList.appendChild(searchedWordItem);
+            
+            // Add "No match found" message
+            const noMatchMessage = document.createElement('div');
+            noMatchMessage.className = 'no-match-message';
+            noMatchMessage.innerHTML = '<p><em>No match found.</em></p>';
+            suggestionsList.appendChild(noMatchMessage);
+
+            const addButton = document.createElement('button');
+            addButton.className = 'btn-add';
+            addButton.style.marginTop = '1rem';
+            addButton.innerHTML = '<i class="fas fa-plus"></i> Manually add homonym';
+            addButton.onclick = () => this.addHomonymGroup(originalWord, []);
+
+            suggestionsContainer.appendChild(suggestionsList);
+            suggestionsContainer.appendChild(addButton);
+        } else {
+            // We have real suggestions - show suggested words + searched word
+            suggestionsContainer.innerHTML = `
+                <div class="suggestions-header">
+                    <h3>Homonym suggestions for "${originalWord}":</h3>
+                    <button class="close-suggestions" onclick="app.closeSuggestions()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+
+            const suggestionsList = document.createElement('div');
+            
+            // Show suggested homonyms first
             realSuggestions.forEach(suggestion => {
                 const suggestionItem = document.createElement('div');
                 suggestionItem.className = 'suggestion-item';
@@ -483,17 +496,30 @@ class HomonymApp {
                     <div>
                         <span class="suggestion-word">${suggestion.word}</span>
                         <span class="suggestion-pronunciation">${suggestion.pronunciation}</span>
-                        ${suggestion.definition ? `<p class="suggestion-definition">${suggestion.definition}</p>` : ''}
+                        ${suggestion.definition ? `<p class="suggestion-definition">${suggestion.definition}</p>` : '<p class="suggestion-definition">Loading definition...</p>'}
                     </div>
                     <input type="checkbox" checked data-word="${suggestion.word}">
                 `;
                 suggestionsList.appendChild(suggestionItem);
             });
+            
+            // Add the searched word at the end
+            const searchedWordItem = document.createElement('div');
+            searchedWordItem.className = 'suggestion-item';
+            searchedWordItem.innerHTML = `
+                <div>
+                    <span class="suggestion-word">${originalWord}</span>
+                    <span class="suggestion-pronunciation">Loading...</span>
+                    <p class="suggestion-definition">Loading definition...</p>
+                </div>
+                <input type="checkbox" checked data-word="${originalWord}">
+            `;
+            suggestionsList.appendChild(searchedWordItem);
 
             const addButton = document.createElement('button');
             addButton.className = 'btn-add';
             addButton.style.marginTop = '1rem';
-            addButton.innerHTML = '<i class="fas fa-plus"></i> Add Homonym';
+            addButton.innerHTML = '<i class="fas fa-plus"></i> Add homonym';
             addButton.onclick = () => this.addHomonymGroup(originalWord, realSuggestions);
 
             suggestionsContainer.appendChild(suggestionsList);
@@ -502,8 +528,40 @@ class HomonymApp {
         
         suggestionsContainer.classList.remove('hidden');
 
-        // Start fetching pronunciations in background (if not already loaded)
-        this.fetchDataInBackground(realSuggestions.length > 0 ? realSuggestions : [{ word: originalWord, pronunciation: 'Loading...' }]);
+        // Fetch definition and pronunciation for the searched word
+        this.fetchDataForSearchedWord(originalWord);
+        
+        // Start fetching pronunciations for suggested words (if any)
+        if (realSuggestions.length > 0) {
+            this.fetchDataInBackground(realSuggestions);
+        }
+    }
+
+    async fetchDataForSearchedWord(word) {
+        try {
+            // Fetch definition and pronunciation for the searched word
+            const definition = await this.getDefinition(word);
+            const pronunciation = await this.getPhonetic(word);
+            
+            // Update the searched word's display
+            const searchedWordElements = document.querySelectorAll('.suggestion-item');
+            searchedWordElements.forEach(element => {
+                const wordSpan = element.querySelector('.suggestion-word');
+                if (wordSpan && wordSpan.textContent === word) {
+                    const pronunciationSpan = element.querySelector('.suggestion-pronunciation');
+                    const definitionP = element.querySelector('.suggestion-definition');
+                    
+                    if (pronunciationSpan) {
+                        pronunciationSpan.textContent = pronunciation;
+                    }
+                    if (definitionP) {
+                        definitionP.textContent = definition;
+                    }
+                }
+            });
+        } catch (error) {
+            console.error(`Error fetching data for searched word ${word}:`, error);
+        }
     }
 
     async fetchDataInBackground(suggestions) {
