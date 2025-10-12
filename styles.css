@@ -176,6 +176,30 @@ header {
     font-weight: 600;
 }
 
+/* Close button for suggestions - neutral grey, always visible */
+.suggestion-group .btn-delete {
+    background: transparent;
+    color: #6c757d; /* Neutral grey instead of red */
+    border: none;
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1; /* Always visible instead of 0 */
+    transform: scale(1); /* Always full size instead of 0.8 */
+    position: relative;
+}
+
+.suggestion-group .btn-delete:hover {
+    background: rgba(108, 117, 125, 0.1); /* Light grey background on hover */
+    color: #495057; /* Darker grey on hover */
+}
+
 /* Suggestion word items with checkboxes */
 .suggestion-word-item {
     display: flex;

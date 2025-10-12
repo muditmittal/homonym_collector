@@ -453,7 +453,7 @@ class HomonymApp {
                         <span class="homonym-pronunciation">Homonym suggestions for "${originalWord}"</span>
                         <button class="btn-delete" onclick="app.closeSuggestions()">
                             <i class="fas fa-times"></i>
-                            <div class="custom-tooltip">Remove suggestions</div>
+                            <div class="custom-tooltip">Close suggestions</div>
                         </button>
                     </div>
                     <div class="words-container">
@@ -490,7 +490,7 @@ class HomonymApp {
                         <span class="homonym-pronunciation">Homonym suggestions for "${originalWord}"</span>
                         <button class="btn-delete" onclick="app.closeSuggestions()">
                             <i class="fas fa-times"></i>
-                            <div class="custom-tooltip">Remove suggestions</div>
+                            <div class="custom-tooltip">Close suggestions</div>
                         </button>
                     </div>
                     <div class="words-container">
