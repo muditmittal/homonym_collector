@@ -255,24 +255,6 @@ header {
 }
 
 /* Add button in suggestions */
-.suggestion-add-btn {
-    width: 100%;
-    margin-top: 1rem;
-    padding: 0.75rem 1rem;
-    background: #28a745;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
 .suggestion-add-btn:hover {
     background: #218838;
     transform: translateY(-1px);
@@ -310,19 +292,17 @@ header {
 
 /* Manual actions container */
 .manual-actions {
-    display: flex;
-    gap: 0.75rem;
     margin-top: 1rem;
     padding-top: 1rem;
     border-top: 1px solid #dee2e6;
 }
 
-/* Add word button - secondary styling */
+/* Add word button - lightweight row styling */
 .btn-add-word {
     background: transparent;
     color: #6c757d;
-    border: 1px solid #dee2e6;
-    padding: 0.5rem 0.75rem;
+    border: none; /* Remove border for lightweight feel */
+    padding: 0.75rem 1rem;
     border-radius: 6px;
     font-size: 0.875rem;
     cursor: pointer;
@@ -330,17 +310,33 @@ header {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    width: 100%; /* Full width row */
+    margin-bottom: 0.75rem; /* Space below add word */
+    text-align: left;
 }
 
 .btn-add-word:hover {
     background: #f8f9fa;
     color: #495057;
-    border-color: #adb5bd;
 }
 
-/* Save homonym button - primary styling (inherits from .suggestion-add-btn) */
+/* Save homonym button - prominent full-width styling */
 .suggestion-add-btn {
-    flex: 1; /* Take remaining space */
+    width: 100%; /* Full width */
+    margin-top: 0; /* Remove top margin since add-word has bottom margin */
+    padding: 1rem 1.5rem; /* Increased height */
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 /* Editable word row styling */
