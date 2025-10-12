@@ -154,10 +154,116 @@ header {
 
 .suggestions-container {
     margin-top: 1.5rem;
-    padding: 1.5rem;
-    border: 2px solid #e1e5e9;
+    padding: 0; /* Remove padding since we're using card layout */
+    border: none; /* Remove border since we're using card layout */
     border-radius: 12px;
+    background: transparent; /* Make transparent since we're using card layout */
+    overflow: visible; /* Allow tooltips to show */
+}
+
+/* Suggestion group styling - matches homonym-group */
+.suggestion-group {
+    margin-bottom: 0 !important; /* Override default margin */
+}
+
+.suggestion-group .homonym-header {
+    background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+    border-bottom: 1px solid #d1ecf1;
+}
+
+.suggestion-group .homonym-pronunciation {
+    color: #0c5460;
+    font-weight: 600;
+}
+
+/* Suggestion word items with checkboxes */
+.suggestion-word-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-left: 3px solid #17a2b8;
     background: #f8f9fa;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.suggestion-word-item:hover {
+    background: #e9ecef;
+    transform: translateX(2px);
+}
+
+.suggestion-word-item:last-of-type {
+    margin-bottom: 0;
+}
+
+/* Modern checkbox styling */
+.suggestion-checkbox {
+    width: 20px;
+    height: 20px;
+    margin-right: 1rem;
+    accent-color: #17a2b8;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.suggestion-checkbox:checked {
+    background-color: #17a2b8;
+}
+
+/* Word info in suggestions */
+.suggestion-word-item .word-info {
+    flex: 1;
+}
+
+.suggestion-word-item .word-info h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.suggestion-word-item .word-info .word-definition {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Add button in suggestions */
+.suggestion-add-btn {
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.suggestion-add-btn:hover {
+    background: #218838;
+    transform: translateY(-1px);
+}
+
+/* No match message in suggestions */
+.suggestion-group .no-match-message {
+    text-align: center;
+    padding: 1rem;
+    color: #6c757d;
+    font-style: italic;
+    border-top: 1px solid #dee2e6;
+    margin: 0.5rem 0;
+    background: #f8f9fa;
+    border-radius: 6px;
 }
 
 .suggestions-header {
