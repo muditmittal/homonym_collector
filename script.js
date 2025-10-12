@@ -488,33 +488,43 @@ class HomonymApp {
 
             const suggestionsList = document.createElement('div');
             
-            // Show suggested homonyms first
-            realSuggestions.forEach(suggestion => {
+            // Sort all words alphabetically (suggestions + searched word)
+            const allWords = [...realSuggestions, { 
+                word: originalWord, 
+                pronunciation: 'Loading...', 
+                definition: 'Loading definition...' 
+            }];
+            
+            allWords.sort((a, b) => a.word.toLowerCase().localeCompare(b.word.toLowerCase()));
+            
+            // Show all words in alphabetical order
+            allWords.forEach(suggestion => {
                 const suggestionItem = document.createElement('div');
                 suggestionItem.className = 'suggestion-item';
-                suggestionItem.innerHTML = `
-                    <div>
-                        <span class="suggestion-word">${suggestion.word}</span>
-                        <span class="suggestion-pronunciation">${suggestion.pronunciation}</span>
-                        ${suggestion.definition ? `<p class="suggestion-definition">${suggestion.definition}</p>` : '<p class="suggestion-definition">Loading definition...</p>'}
-                    </div>
-                    <input type="checkbox" checked data-word="${suggestion.word}">
-                `;
+                
+                if (suggestion.word === originalWord) {
+                    // This is the searched word
+                    suggestionItem.innerHTML = `
+                        <div>
+                            <span class="suggestion-word">${suggestion.word}</span>
+                            <span class="suggestion-pronunciation">Loading...</span>
+                            <p class="suggestion-definition">Loading definition...</p>
+                        </div>
+                        <input type="checkbox" checked data-word="${suggestion.word}">
+                    `;
+                } else {
+                    // This is a suggested homonym
+                    suggestionItem.innerHTML = `
+                        <div>
+                            <span class="suggestion-word">${suggestion.word}</span>
+                            <span class="suggestion-pronunciation">${suggestion.pronunciation}</span>
+                            ${suggestion.definition ? `<p class="suggestion-definition">${suggestion.definition}</p>` : '<p class="suggestion-definition">Loading definition...</p>'}
+                        </div>
+                        <input type="checkbox" checked data-word="${suggestion.word}">
+                    `;
+                }
                 suggestionsList.appendChild(suggestionItem);
             });
-            
-            // Add the searched word at the end
-            const searchedWordItem = document.createElement('div');
-            searchedWordItem.className = 'suggestion-item';
-            searchedWordItem.innerHTML = `
-                <div>
-                    <span class="suggestion-word">${originalWord}</span>
-                    <span class="suggestion-pronunciation">Loading...</span>
-                    <p class="suggestion-definition">Loading definition...</p>
-                </div>
-                <input type="checkbox" checked data-word="${originalWord}">
-            `;
-            suggestionsList.appendChild(searchedWordItem);
 
             const addButton = document.createElement('button');
             addButton.className = 'btn-add';
