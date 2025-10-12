@@ -226,7 +226,7 @@ header {
 .suggestion-item {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     padding: 1rem;
     border: 1px solid #e1e5e9;
     border-radius: 8px;
@@ -249,11 +249,23 @@ header {
 .suggestion-word {
     font-weight: 600;
     color: #333;
+    display: block;
+    margin-bottom: 0.25rem;
 }
 
 .suggestion-pronunciation {
-    color: #666;
+    color: #667eea;
     font-style: italic;
+    font-size: 0.9rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.suggestion-definition {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.4;
 }
 
 .btn-add {

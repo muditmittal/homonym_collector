@@ -383,79 +383,70 @@ class HomonymApp {
         // Check our common homonyms database first
         if (commonHomonyms[word]) {
             for (const homonym of commonHomonyms[word]) {
-                suggestions.push({
-                    word: homonym,
-                    pronunciation: 'Loading...'
-                });
-            }
-        }
-
-        // If no common homonyms found, generate some suggestions
-        if (suggestions.length === 0) {
-            const algorithmicSuggestions = this.generateAlgorithmicSuggestions(word);
-            for (const suggestion of algorithmicSuggestions.slice(0, 3)) {
-                suggestions.push({
-                    word: suggestion,
-                    pronunciation: 'Loading...'
-                });
-            }
-        }
-
-        // If still no suggestions, provide a message
-        if (suggestions.length === 0) {
-            suggestions.push({
-                word: 'No common homonyms found',
-                pronunciation: 'Try a different word'
-            });
-        }
-
-        return suggestions.slice(0, 5);
-    }
-
-    generateAlgorithmicSuggestions(word) {
-        const suggestions = [];
-        const patterns = [
-            { from: 'ight', to: 'ite' },
-            { from: 'ite', to: 'ight' },
-            { from: 'ear', to: 'ere' },
-            { from: 'ere', to: 'ear' },
-            { from: 'air', to: 'are' },
-            { from: 'are', to: 'air' },
-            { from: 'ph', to: 'f' },
-            { from: 'f', to: 'ph' },
-            { from: 'c', to: 'k' },
-            { from: 'k', to: 'c' }
-        ];
-
-        for (const pattern of patterns) {
-            if (word.includes(pattern.from)) {
-                const suggestion = word.replace(pattern.from, pattern.to);
-                if (suggestion !== word && suggestion.length > 1) {
-                    suggestions.push(suggestion);
+                // Validate each suggestion exists in dictionary and get its definition
+                try {
+                    const definition = await this.getDefinition(homonym);
+                    if (definition && !definition.includes('No definition found')) {
+                        suggestions.push({
+                            word: homonym,
+                            pronunciation: 'Loading...',
+                            definition: definition
+                        });
+                    }
+                } catch (error) {
+                    console.log(`Skipping invalid word: ${homonym}`);
                 }
             }
         }
 
-        return suggestions;
+        // If no common homonyms found, validate the input word first
+        if (suggestions.length === 0) {
+            // Try to validate the input word exists in dictionary
+            try {
+                const inputDefinition = await this.getDefinition(word);
+                if (inputDefinition && !inputDefinition.includes('No definition found')) {
+                    suggestions.push({
+                        word: 'No common homonyms found',
+                        pronunciation: 'Try a different word',
+                        definition: `"${word}" is a valid word, but we don't have homonyms for it in our database.`
+                    });
+                } else {
+                    suggestions.push({
+                        word: 'Word not found',
+                        pronunciation: 'Check spelling',
+                        definition: `"${word}" was not found in the dictionary. Please check the spelling.`
+                    });
+                }
+            } catch (error) {
+                suggestions.push({
+                    word: 'No common homonyms found',
+                    pronunciation: 'Try a different word',
+                    definition: 'This word is not in our curated homonym database.'
+                });
+            }
+        }
+
+        return suggestions.slice(0, 5);
     }
 
     displaySuggestions(originalWord, suggestions) {
         const suggestionsContainer = document.getElementById('suggestions');
         
         // Check if we have any real suggestions (not just "no homonyms found")
-        const realSuggestions = suggestions.filter(s => !s.word.includes('no homonyms found'));
+        const realSuggestions = suggestions.filter(s => !s.word.includes('no homonyms found') && !s.word.includes('Word not found'));
         
         if (realSuggestions.length === 0) {
             // No real suggestions found
+            const errorSuggestion = suggestions[0] || { word: 'No homonyms found', definition: 'Try a different word' };
             suggestionsContainer.innerHTML = `
                 <div class="suggestions-header">
-                    <h3>No homonyms found for "${originalWord}"</h3>
+                    <h3>${errorSuggestion.word} for "${originalWord}"</h3>
                     <button class="close-suggestions" onclick="app.closeSuggestions()">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <div class="no-suggestions-content">
-                    <p>We couldn't find any common homonyms for this word in our database.</p>
+                    <p>${errorSuggestion.definition}</p>
                     <p><strong>You can still add it to your collection:</strong></p>
                     <div class="suggestion-item">
                         <div>
@@ -492,6 +483,7 @@ class HomonymApp {
                     <div>
                         <span class="suggestion-word">${suggestion.word}</span>
                         <span class="suggestion-pronunciation">${suggestion.pronunciation}</span>
+                        ${suggestion.definition ? `<p class="suggestion-definition">${suggestion.definition}</p>` : ''}
                     </div>
                     <input type="checkbox" checked data-word="${suggestion.word}">
                 `;
@@ -510,7 +502,7 @@ class HomonymApp {
         
         suggestionsContainer.classList.remove('hidden');
 
-        // Start fetching pronunciations and definitions in background
+        // Start fetching pronunciations in background (if not already loaded)
         this.fetchDataInBackground(realSuggestions.length > 0 ? realSuggestions : [{ word: originalWord, pronunciation: 'Loading...' }]);
     }
 
