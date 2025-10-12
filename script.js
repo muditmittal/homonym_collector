@@ -462,15 +462,20 @@ class HomonymApp {
                     </div>
                     <div class="words-container">
                         <div class="word-item suggestion-word-item error-item">
-                            <i class="fas fa-exclamation-triangle error-icon"></i>
+                            <input type="checkbox" data-word="${errorSuggestion.word}" class="suggestion-checkbox" disabled>
                             <div class="word-info">
-                                <h3>${errorSuggestion.word}</h3>
+                                <h3>Word not found in dictionary</h3>
                                 <p class="word-definition">${errorSuggestion.definition}</p>
                             </div>
                         </div>
-                        <button class="btn-add suggestion-add-btn" onclick="app.addHomonymGroup('${originalWord}', [])">
-                            <i class="fas fa-plus"></i> Manually add word anyway
-                        </button>
+                        <div class="manual-actions">
+                            <button class="btn-add-word" onclick="app.addWordRow()">
+                                <i class="fas fa-plus"></i> Add word
+                            </button>
+                            <button class="btn-add suggestion-add-btn" onclick="app.saveHomonymGroup('${originalWord}', [])">
+                                <i class="fas fa-save"></i> Save homonym
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -509,9 +514,14 @@ class HomonymApp {
                                 <p><em>No homonym suggestions found for "${originalWord}".</em></p>
                             </div>
                         ` : ''}
-                        <button class="btn-add suggestion-add-btn" onclick="app.addHomonymGroup('${originalWord}', ${JSON.stringify(homonymSuggestions)})">
-                            <i class="fas fa-plus"></i> ${hasHomonyms ? 'Add homonym' : 'Manually add homonym'}
-                        </button>
+                        <div class="manual-actions">
+                            <button class="btn-add-word" onclick="app.addWordRow()">
+                                <i class="fas fa-plus"></i> Add word
+                            </button>
+                            <button class="btn-add suggestion-add-btn" onclick="app.saveHomonymGroup('${originalWord}', ${JSON.stringify(homonymSuggestions)})">
+                                <i class="fas fa-save"></i> Save homonym
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -543,6 +553,166 @@ class HomonymApp {
             });
         } catch (error) {
             console.log(`Failed to fetch pronunciation for ${word}:`, error);
+        }
+    }
+
+    addWordRow() {
+        // Add a new editable row to the suggestions
+        const wordsContainer = document.querySelector('.words-container');
+        const manualActions = wordsContainer.querySelector('.manual-actions');
+        
+        // Check if there's already an editable row
+        if (wordsContainer.querySelector('.editable-word-row')) {
+            return; // Don't add multiple editable rows
+        }
+        
+        const editableRow = document.createElement('div');
+        editableRow.className = 'word-item suggestion-word-item editable-word-row';
+        editableRow.innerHTML = `
+            <input type="checkbox" checked class="suggestion-checkbox">
+            <div class="word-info">
+                <input type="text" class="word-input" placeholder="Type a word..." />
+                <p class="word-definition">Type a word to see its definition</p>
+            </div>
+            <button class="btn-lookup" onclick="app.lookupWord(this)">
+                <i class="fas fa-search"></i>
+            </button>
+        `;
+        
+        // Insert before the manual actions
+        wordsContainer.insertBefore(editableRow, manualActions);
+        
+        // Focus on the input
+        const input = editableRow.querySelector('.word-input');
+        input.focus();
+        
+        // Add enter key listener
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.lookupWord(editableRow.querySelector('.btn-lookup'));
+            }
+        });
+    }
+
+    async lookupWord(buttonElement) {
+        const row = buttonElement.closest('.editable-word-row');
+        const input = row.querySelector('.word-input');
+        const definitionP = row.querySelector('.word-definition');
+        const checkbox = row.querySelector('.suggestion-checkbox');
+        const word = input.value.trim().toLowerCase();
+        
+        if (!word) {
+            definitionP.textContent = 'Please enter a word';
+            definitionP.style.color = '#dc3545';
+            return;
+        }
+        
+        // Show loading state
+        definitionP.textContent = 'Looking up definition...';
+        definitionP.style.color = '#6c757d';
+        buttonElement.disabled = true;
+        buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        
+        try {
+            const definition = await this.getDefinition(word);
+            
+            if (definition && !definition.includes('No definition found')) {
+                // Word found - update UI
+                input.value = word;
+                input.disabled = true;
+                definitionP.textContent = definition;
+                definitionP.style.color = '#666';
+                checkbox.setAttribute('data-word', word);
+                
+                // Change button to success state
+                buttonElement.innerHTML = '<i class="fas fa-check"></i>';
+                buttonElement.disabled = true;
+                buttonElement.style.background = '#28a745';
+                
+                // Remove editable class
+                row.classList.remove('editable-word-row');
+                row.classList.add('added-word-row');
+            } else {
+                // Word not found
+                definitionP.textContent = 'Word not found in dictionary. Check spelling.';
+                definitionP.style.color = '#dc3545';
+                checkbox.checked = false;
+                checkbox.disabled = true;
+                
+                // Reset button
+                buttonElement.innerHTML = '<i class="fas fa-search"></i>';
+                buttonElement.disabled = false;
+            }
+        } catch (error) {
+            console.error('Error looking up word:', error);
+            definitionP.textContent = 'Error looking up word. Please try again.';
+            definitionP.style.color = '#dc3545';
+            
+            // Reset button
+            buttonElement.innerHTML = '<i class="fas fa-search"></i>';
+            buttonElement.disabled = false;
+        }
+    }
+
+    async saveHomonymGroup(originalWord, suggestions) {
+        this.showLoading();
+        
+        try {
+            // Get all selected words including manually added ones
+            const checkboxes = document.querySelectorAll('.suggestion-checkbox:checked:not([disabled])');
+            const selectedWords = [];
+            
+            checkboxes.forEach(checkbox => {
+                const word = checkbox.getAttribute('data-word');
+                if (word && word !== 'No common homonyms found') {
+                    selectedWords.push(word);
+                }
+            });
+
+            if (selectedWords.length < 2) {
+                this.hideLoading();
+                this.showError('Please select at least two words to create a homonym.');
+                return;
+            }
+
+            // Get definitions for all words
+            const wordsWithDefinitions = [];
+            for (const word of selectedWords) {
+                const definition = await this.getDefinition(word);
+                wordsWithDefinitions.push({
+                    word: word,
+                    definition: definition
+                });
+            }
+
+            // Get pronunciation (use the first word's pronunciation)
+            const pronunciation = await this.getPhonetic(selectedWords[0]);
+
+            // Create homonym group
+            const homonymGroup = {
+                id: Date.now(),
+                pronunciation: pronunciation,
+                words: wordsWithDefinitions,
+                dateAdded: new Date().toISOString()
+            };
+
+            // Add to collection
+            this.homonyms.push(homonymGroup);
+            this.saveToStorage();
+            this.renderHomonyms();
+            this.updateCollectionCount();
+
+            // Clear inputs and hide suggestions
+            document.getElementById('searchInput').value = '';
+            document.getElementById('suggestions').classList.add('hidden');
+            this.showAllHomonyms(); // Show all homonyms again
+            
+            this.hideLoading();
+            this.showSuccess(`Successfully added homonym with ${selectedWords.length} words!`);
+        } catch (error) {
+            console.error('Error saving homonym:', error);
+            this.hideLoading();
+            this.showError('Failed to save homonym. Please try again.');
         }
     }
 
@@ -621,68 +791,6 @@ class HomonymApp {
             console.log('Definition lookup failed for:', word);
         }
         return 'Definition not available';
-    }
-
-    async addHomonymGroup(originalWord, suggestions) {
-        this.showLoading();
-        
-        try {
-            // Get selected words
-            const checkboxes = document.querySelectorAll('.suggestion-checkbox:checked');
-            const selectedWords = [];
-            
-            checkboxes.forEach(checkbox => {
-                const word = checkbox.getAttribute('data-word');
-                if (word && word !== 'No common homonyms found') {
-                    selectedWords.push(word);
-                }
-            });
-
-            if (selectedWords.length < 2) {
-                this.hideLoading();
-                this.showError('Please select at least two words to create a homonym.');
-                return;
-            }
-
-            // Get definitions for all words
-            const wordsWithDefinitions = [];
-            for (const word of selectedWords) {
-                const definition = await this.getDefinition(word);
-                wordsWithDefinitions.push({
-                    word: word,
-                    definition: definition
-                });
-            }
-
-            // Get pronunciation (use first word)
-            const pronunciation = await this.getPhonetic(selectedWords[0]);
-
-            // Create homonym group
-            const homonymGroup = {
-                id: Date.now(),
-                pronunciation: pronunciation,
-                words: wordsWithDefinitions,
-                dateAdded: new Date().toISOString()
-            };
-
-            // Add to collection
-            this.homonyms.push(homonymGroup);
-            this.saveToStorage();
-            this.renderHomonyms();
-            this.updateCollectionCount();
-
-            // Clear inputs and hide suggestions
-            document.getElementById('searchInput').value = '';
-            document.getElementById('suggestions').classList.add('hidden');
-            this.showAllHomonyms(); // Show all homonyms again
-            
-            this.hideLoading();
-            this.showSuccess(`Successfully added homonym with ${selectedWords.length} words!`);
-        } catch (error) {
-            console.error('Error adding homonym:', error);
-            this.hideLoading();
-            this.showError('Failed to add homonym. Please try again.');
-        }
     }
 
     renderHomonyms() {
