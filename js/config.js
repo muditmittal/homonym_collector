@@ -6,7 +6,9 @@
 const AppConfig = {
     // API Configuration
     api: {
-        dictionaryBaseUrl: 'https://api.dictionaryapi.dev/api/v2/entries/en/',
+        // Merriam-Webster School Dictionary API
+        dictionaryApiKey: '5b652fad-e28b-42ce-9129-d1fc7716d900',
+        dictionaryBaseUrl: 'https://www.dictionaryapi.com/api/v3/references/sd4/json/',
         timeout: 8000,
         retryAttempts: 3,
         retryDelay: 1000

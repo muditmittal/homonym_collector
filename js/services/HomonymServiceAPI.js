@@ -159,31 +159,22 @@ class HomonymService {
     }
 
     /**
-     * Search homonyms by word
+     * Search homonyms by word (LOCAL SEARCH - no API call)
+     * Fast client-side filtering for real-time search experience
      */
-    async searchHomonyms(searchTerm) {
+    searchHomonyms(searchTerm) {
         if (!searchTerm || !searchTerm.trim()) {
             return this.getHomonyms();
         }
 
-        if (!this.collectionId) {
-            return [];
-        }
-
-        try {
-            const results = await this.apiService.searchHomonyms(this.collectionId, searchTerm);
-            return results;
-        } catch (error) {
-            console.error('Search failed:', error);
-            // Fallback to local search
-            const term = searchTerm.toLowerCase().trim();
-            return this.homonyms.filter(homonym => 
-                homonym.words.some(word => 
-                    word.word.toLowerCase().includes(term) ||
-                    word.definition.toLowerCase().includes(term)
-                )
-            );
-        }
+        // Perform local search on cached data for instant results
+        const term = searchTerm.toLowerCase().trim();
+        return this.homonyms.filter(homonym => 
+            homonym.words.some(word => 
+                word.word.toLowerCase().includes(term) ||
+                word.definition.toLowerCase().includes(term)
+            )
+        );
     }
 
     /**
