@@ -167,7 +167,7 @@ class HomonymApp {
             this.uiManager.showNoResults(searchTerm);
             this.uiManager.updateCollectionCount(0, true);
         } else {
-            this.uiManager.renderHomonyms(filteredHomonyms);
+            this.uiManager.renderHomonyms(filteredHomonyms, searchTerm); // Pass searchTerm for highlighting
             this.uiManager.updateCollectionCount(filteredHomonyms.length, true);
         }
     }

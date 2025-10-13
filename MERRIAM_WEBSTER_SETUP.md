@@ -6,7 +6,7 @@ Create a file called `.env` in the `backend/` directory with the following conte
 
 ```bash
 # Neon Database Connection String
-DATABASE_URL=your_actual_neon_connection_string_here
+DATABASE_URL=psql 'postgresql://neondb_owner:npg_u4fQFUIKbN3w@ep-falling-king-adjru7d5-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
 
 # Server Configuration
 PORT=3000

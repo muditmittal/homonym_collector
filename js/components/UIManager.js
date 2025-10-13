@@ -55,8 +55,9 @@ class UIManager {
     /**
      * Render homonyms list
      * @param {Array} homonyms - Array of homonym objects
+     * @param {string} searchTerm - Optional search term for highlighting
      */
-    renderHomonyms(homonyms) {
+    renderHomonyms(homonyms, searchTerm = '') {
         if (!homonyms || homonyms.length === 0) {
             this.renderEmptyState();
             return;
@@ -70,39 +71,87 @@ class UIManager {
         });
 
         const homonymHTML = sortedHomonyms.map(homonym => 
-            this.renderHomonymCard(homonym)
+            this.renderHomonymCard(homonym, searchTerm)
         ).join('');
 
         this.elements.homonymList.innerHTML = homonymHTML;
     }
 
     /**
+     * Capitalize first letter of a word (like a real dictionary)
+     * @param {string} word - The word to capitalize
+     * @returns {string} Capitalized word
+     */
+    capitalizeWord(word) {
+        if (!word) return '';
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    }
+
+    /**
+     * Highlight matching search terms in text
+     * @param {string} text - The text to highlight
+     * @param {string} searchTerm - The search term to highlight
+     * @returns {string} HTML string with highlighted text
+     */
+    highlightText(text, searchTerm) {
+        if (!searchTerm || searchTerm.trim() === '') {
+            return this.escapeHtml(text);
+        }
+
+        const escaped = this.escapeHtml(text);
+        const term = searchTerm.trim();
+        
+        // Create a regex that matches the search term (case-insensitive)
+        const regex = new RegExp(`(${this.escapeRegex(term)})`, 'gi');
+        
+        return escaped.replace(regex, '<span class="highlight">$1</span>');
+    }
+
+    /**
+     * Escape special regex characters
+     * @param {string} string - String to escape
+     * @returns {string} Escaped string
+     */
+    escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    /**
      * Format definition text to make word types italic
      * @param {string} definition - The definition text
-     * @returns {string} Formatted HTML with word types in italic
+     * @param {string} searchTerm - Optional search term to highlight
+     * @returns {string} Formatted HTML with word types in italic and highlighted terms
      */
-    formatDefinition(definition) {
-        // Escape HTML first
-        const escaped = this.escapeHtml(definition);
+    formatDefinition(definition, searchTerm = '') {
+        // First highlight search terms (which also escapes HTML)
+        let formatted = searchTerm ? this.highlightText(definition, searchTerm) : this.escapeHtml(definition);
         
-        // Replace word types like (verb), (noun), (adjective), etc. with italic spans
-        return escaped.replace(/\(([^)]+)\)/g, '<span class="word-type">($1)</span>');
+        // Then replace word types like (verb), (noun), (adjective), etc. with italic spans
+        // Be careful not to affect highlighted text
+        formatted = formatted.replace(/\(([^)]+)\)(?![^<]*<\/span>)/g, '<span class="word-type">($1)</span>');
+        
+        return formatted;
     }
 
     /**
      * Render a single homonym card
      * @param {Object} homonym - Homonym object
+     * @param {string} searchTerm - Optional search term for highlighting
      * @returns {string} HTML string for the homonym card
      */
-    renderHomonymCard(homonym) {
-        const wordsHTML = homonym.words.map(word => `
+    renderHomonymCard(homonym, searchTerm = '') {
+        const wordsHTML = homonym.words.map(word => {
+            const capitalizedWord = this.capitalizeWord(word.word);
+            const highlightedWord = searchTerm ? this.highlightText(capitalizedWord, searchTerm) : this.escapeHtml(capitalizedWord);
+            
+            return `
             <div class="word-item">
                 <div class="word-info">
-                    <h3>${this.escapeHtml(word.word)}</h3>
-                    <p class="word-definition">${this.formatDefinition(word.definition)}</p>
+                    <h3>${highlightedWord}</h3>
+                    <p class="word-definition">${this.formatDefinition(word.definition, searchTerm)}</p>
                 </div>
             </div>
-        `).join('');
+        `}).join('');
 
         return `
             <div class="homonym-group" data-id="${homonym.id}">
@@ -199,20 +248,22 @@ class UIManager {
             a.word.toLowerCase().localeCompare(b.word.toLowerCase())
         );
 
-        const suggestionsHTML = sortedSuggestions.map(suggestion => `
+        const suggestionsHTML = sortedSuggestions.map(suggestion => {
+            const capitalizedWord = this.capitalizeWord(suggestion.word);
+            return `
             <div class="word-item suggestion-word-item">
                 <input type="checkbox" checked data-word="${this.escapeHtml(suggestion.word)}" class="suggestion-checkbox">
                 <div class="word-info">
-                    <h3>${this.escapeHtml(suggestion.word)}</h3>
+                    <h3>${this.escapeHtml(capitalizedWord)}</h3>
                     <p class="word-definition">${this.formatDefinition(suggestion.definition || 'Loading definition...')}</p>
                 </div>
             </div>
-        `).join('');
+        `}).join('');
 
         this.elements.suggestions.innerHTML = `
             <div class="homonym-group suggestion-group">
                 <div class="homonym-header">
-                    <span class="homonym-pronunciation">Homonym suggestions for "${this.escapeHtml(originalWord)}"</span>
+                    <span class="homonym-pronunciation">Homonym suggestions for "${this.escapeHtml(this.capitalizeWord(originalWord))}"</span>
                     <button class="btn-delete" onclick="app.closeSuggestions()">
                         <i class="fas fa-times"></i>
                         <div class="custom-tooltip">Close suggestions</div>
@@ -222,7 +273,7 @@ class UIManager {
                     ${suggestionsHTML}
                     ${!hasHomonyms ? `
                         <div class="no-match-message">
-                            <p><em>No homonym suggestions found for "${this.escapeHtml(originalWord)}".</em></p>
+                            <p><em>No homonym suggestions found for "${this.escapeHtml(this.capitalizeWord(originalWord))}".</em></p>
                         </div>
                     ` : ''}
                     <div class="manual-actions">
@@ -232,6 +283,9 @@ class UIManager {
                         <button class="btn-add suggestion-add-btn" onclick="app.saveHomonymGroup('${this.escapeHtml(originalWord)}', ${JSON.stringify(homonymSuggestions)})">
                             <i class="fas fa-save"></i> Save homonym
                         </button>
+                    </div>
+                    <div class="mw-attribution">
+                        Definitions powered by <a href="https://dictionaryapi.com/" target="_blank" rel="noopener">Merriam-Webster's School Dictionary</a>
                     </div>
                 </div>
             </div>
