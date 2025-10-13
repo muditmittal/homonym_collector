@@ -48,8 +48,9 @@ class HomonymApp {
         });
 
         // Collection management
-        this.uiManager.elements.newCollection.addEventListener('click', () => {
-            this.createNewCollection();
+        this.uiManager.elements.collectionSwitcherBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.uiManager.toggleCollectionSwitcher();
         });
 
         this.uiManager.elements.collectionMenuBtn.addEventListener('click', (e) => {
@@ -435,6 +436,75 @@ class HomonymApp {
             this.updateUI();
             this.uiManager.showSuccess('Collection deleted');
         }
+    }
+
+    /**
+     * Load and display all collections in the switcher dropdown
+     */
+    async loadCollectionsList() {
+        try {
+            // Get all collections from the API
+            const collections = await this.apiService.getCollections();
+            const currentCollectionId = this.homonymService.currentCollectionId;
+            
+            // Render collections in the dropdown
+            const collectionsHTML = collections.map(collection => {
+                const isActive = collection.id === currentCollectionId;
+                return `
+                    <button 
+                        class="collection-item ${isActive ? 'active' : ''}" 
+                        onclick="app.switchCollection(${collection.id}, '${this.escapeHtml(collection.name)}')"
+                    >
+                        ${this.escapeHtml(collection.name)}
+                    </button>
+                `;
+            }).join('');
+            
+            this.uiManager.elements.collectionsList.innerHTML = collectionsHTML;
+        } catch (error) {
+            console.error('Failed to load collections list:', error);
+            this.uiManager.showError('Failed to load collections');
+        }
+    }
+
+    /**
+     * Switch to a different collection
+     * @param {number} collectionId - ID of the collection to switch to
+     * @param {string} collectionName - Name of the collection
+     */
+    async switchCollection(collectionId, collectionName) {
+        try {
+            this.uiManager.showLoading();
+            
+            // Switch to the new collection
+            this.homonymService.currentCollectionId = collectionId;
+            this.homonymService.collectionName = collectionName;
+            this.apiService.setCurrentCollection(collectionId);
+            
+            // Load the collection's homonyms
+            await this.homonymService.init();
+            
+            // Update UI
+            this.updateUI();
+            this.uiManager.hideCollectionSwitcher();
+            this.uiManager.hideLoading();
+            this.uiManager.showSuccess(`Switched to "${collectionName}"`);
+        } catch (error) {
+            console.error('Failed to switch collection:', error);
+            this.uiManager.hideLoading();
+            this.uiManager.showError('Failed to switch collection');
+        }
+    }
+
+    /**
+     * Escape HTML to prevent XSS
+     * @param {string} text - Text to escape
+     * @returns {string} Escaped text
+     */
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     /**

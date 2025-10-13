@@ -29,7 +29,9 @@ class UIManager {
             homonymList: document.getElementById('homonymList'),
 
             // Collection menu elements
-            newCollection: document.getElementById('newCollection'),
+            collectionSwitcherBtn: document.getElementById('collectionSwitcherBtn'),
+            collectionSwitcherDropdown: document.getElementById('collectionSwitcherDropdown'),
+            collectionsList: document.getElementById('collectionsList'),
             collectionMenuBtn: document.getElementById('collectionMenuBtn'),
             collectionDropdown: document.getElementById('collectionDropdown'),
 
@@ -48,6 +50,9 @@ class UIManager {
             // Close dropdowns when clicking outside
             if (!e.target.closest('.collection-menu')) {
                 this.hideCollectionMenu();
+            }
+            if (!e.target.closest('.collection-title')) {
+                this.hideCollectionSwitcher();
             }
         });
     }
@@ -379,6 +384,40 @@ class UIManager {
      */
     toggleCollectionMenu() {
         this.elements.collectionDropdown.classList.toggle('hidden');
+        // Close collection switcher when opening menu
+        this.hideCollectionSwitcher();
+    }
+
+    /**
+     * Hide collection switcher dropdown
+     */
+    hideCollectionSwitcher() {
+        this.elements.collectionSwitcherDropdown.classList.add('hidden');
+    }
+
+    /**
+     * Toggle collection switcher dropdown
+     */
+    toggleCollectionSwitcher() {
+        this.elements.collectionSwitcherDropdown.classList.toggle('hidden');
+        // Close collection menu when opening switcher
+        this.hideCollectionMenu();
+        
+        // If opening, render the collections list
+        if (!this.elements.collectionSwitcherDropdown.classList.contains('hidden')) {
+            this.renderCollectionsList();
+        }
+    }
+
+    /**
+     * Render collections list in switcher dropdown
+     */
+    async renderCollectionsList() {
+        // This will be populated by the app
+        // For now, just trigger the app to load collections
+        if (window.app && window.app.loadCollectionsList) {
+            await window.app.loadCollectionsList();
+        }
     }
 
     /**

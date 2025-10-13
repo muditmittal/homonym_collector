@@ -17,11 +17,6 @@
                 <div class="header-left">
                     <h1><i class="fas fa-spell-check"></i> Homonym Collector</h1>
                 </div>
-                <div class="header-right">
-                    <button id="newCollection" class="btn-new-collection">
-                        <i class="fas fa-plus"></i> New Collection
-                    </button>
-                </div>
             </div>
         </header>
 
@@ -46,6 +41,17 @@
             <div class="collection-header">
                 <div class="collection-title">
                     <h2 id="collectionName">Oshi's Homonyms</h2>
+                    <button id="collectionSwitcherBtn" class="btn-collection-switcher" title="Switch collection">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div id="collectionSwitcherDropdown" class="dropdown-menu collection-switcher-menu hidden">
+                        <!-- Collections will be dynamically populated here -->
+                        <div id="collectionsList" class="collections-list"></div>
+                        <div class="dropdown-separator"></div>
+                        <button onclick="app.createNewCollection()" class="create-collection-btn">
+                            <i class="fas fa-plus"></i> Create New Collection
+                        </button>
+                    </div>
                 </div>
                 <div class="collection-menu">
                     <span id="collectionCount" class="count">0 homonyms</span>
