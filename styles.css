@@ -839,6 +839,8 @@ header {
 
 .words-container {
     padding: 0; /* Remove padding to let individual rows handle spacing */
+    margin: 0; /* Remove any margins */
+    border: none; /* Remove any borders */
 }
 
 .word-item {
@@ -848,19 +850,23 @@ header {
     border-left: 2px solid #3439C5; /* 2px left border with exact color */
     background: #f9f9f9; /* Exact background color from Figma */
     border-radius: 0; /* No border radius for individual items */
-    margin-bottom: 0; /* No margin between items */
+    margin: 0; /* Remove all margins */
     min-height: 40px; /* Min height 40px as specified */
     border-bottom: none; /* No bottom border */
+    border-top: none; /* No top border */
+    border-right: none; /* No right border */
 }
 
 .word-item:last-child {
-    margin-bottom: 0;
+    margin-bottom: 0; /* Ensure no margin on last item */
 }
 
 .word-info {
     display: flex;
     align-items: flex-start;
     width: 100%;
+    margin: 0; /* Remove any inherited margins */
+    padding: 0; /* Remove any inherited padding */
 }
 
 .word-info h3 {
@@ -868,10 +874,11 @@ header {
     font-size: 18px; /* 18px font as specified */
     line-height: 24px; /* 24px line height as specified */
     font-weight: 700; /* Weight 700 as specified */
-    margin: 0;
+    margin: 0; /* Remove all margins */
+    padding: 0; /* Remove all padding */
     width: 160px; /* Keep existing width */
     flex-shrink: 0;
-    padding-right: 16px;
+    padding-right: 16px; /* Only right padding for spacing from definition */
     font-family: 'Wix Madefor Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -880,9 +887,9 @@ header {
     line-height: 24px; /* 24px line height as specified */
     font-size: 16px; /* Keep 16px for readability */
     font-weight: 400; /* Regular weight for description text */
-    margin: 0;
+    margin: 0; /* Remove all margins */
+    padding: 0; /* Remove all padding */
     flex: 1;
-    padding-top: 0; /* Remove top padding for proper alignment */
     font-family: 'Wix Madefor Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
