@@ -84,8 +84,10 @@ class UIManager {
     renderHomonymCard(homonym) {
         const wordsHTML = homonym.words.map(word => `
             <div class="word-item">
-                <h3>${this.escapeHtml(word.word)}</h3>
-                <p>${this.escapeHtml(word.definition)}</p>
+                <div class="word-info">
+                    <h3>${this.escapeHtml(word.word)}</h3>
+                    <p class="word-definition">${this.escapeHtml(word.definition)}</p>
+                </div>
             </div>
         `).join('');
 
