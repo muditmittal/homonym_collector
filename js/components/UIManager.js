@@ -77,6 +77,19 @@ class UIManager {
     }
 
     /**
+     * Format definition text to make word types italic
+     * @param {string} definition - The definition text
+     * @returns {string} Formatted HTML with word types in italic
+     */
+    formatDefinition(definition) {
+        // Escape HTML first
+        const escaped = this.escapeHtml(definition);
+        
+        // Replace word types like (verb), (noun), (adjective), etc. with italic spans
+        return escaped.replace(/\(([^)]+)\)/g, '<span class="word-type">($1)</span>');
+    }
+
+    /**
      * Render a single homonym card
      * @param {Object} homonym - Homonym object
      * @returns {string} HTML string for the homonym card
@@ -86,7 +99,7 @@ class UIManager {
             <div class="word-item">
                 <div class="word-info">
                     <h3>${this.escapeHtml(word.word)}</h3>
-                    <p class="word-definition">${this.escapeHtml(word.definition)}</p>
+                    <p class="word-definition">${this.formatDefinition(word.definition)}</p>
                 </div>
             </div>
         `).join('');
@@ -156,7 +169,7 @@ class UIManager {
                         <input type="checkbox" data-word="${this.escapeHtml(errorSuggestion.word)}" class="suggestion-checkbox" disabled>
                         <div class="word-info">
                             <h3>Word not found in dictionary</h3>
-                            <p class="word-definition">${this.escapeHtml(errorSuggestion.definition)}</p>
+                            <p class="word-definition">${this.formatDefinition(errorSuggestion.definition)}</p>
                         </div>
                     </div>
                     <div class="manual-actions">
@@ -191,7 +204,7 @@ class UIManager {
                 <input type="checkbox" checked data-word="${this.escapeHtml(suggestion.word)}" class="suggestion-checkbox">
                 <div class="word-info">
                     <h3>${this.escapeHtml(suggestion.word)}</h3>
-                    <p class="word-definition">${this.escapeHtml(suggestion.definition || 'Loading definition...')}</p>
+                    <p class="word-definition">${this.formatDefinition(suggestion.definition || 'Loading definition...')}</p>
                 </div>
             </div>
         `).join('');
