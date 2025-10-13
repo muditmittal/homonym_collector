@@ -6,7 +6,7 @@
 
 body {
     font-family: 'Wix Madefor Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #6879E3;
     min-height: 100vh;
     color: #333;
 }
@@ -736,7 +736,7 @@ header {
 
 .homonym-group {
     border: 1px solid #e2e2e2; /* Exact border color from Figma */
-    border-radius: 8px; /* Exact radius from Figma */
+    border-radius: 8px; /* 8px radius as specified */
     margin-bottom: 16px; /* 16px = 2 × 8px grid */
     background: white;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -838,7 +838,7 @@ header {
 }
 
 .words-container {
-    padding: 0; /* Remove padding to let individual rows handle spacing */
+    padding: 8px; /* 8px padding on all sides as specified in Figma */
     margin: 0; /* Remove any margins */
     border: none; /* Remove any borders */
 }
@@ -849,8 +849,8 @@ header {
     padding: 8px; /* 8px padding around content as specified for readability */
     border-left: 2px solid #3439C5; /* 2px left border with exact color */
     background: #f9f9f9; /* Exact background color from Figma */
-    border-radius: 0; /* No border radius for individual items */
-    margin: 0; /* No external margins */
+    border-radius: 0; /* No border radius as specified */
+    margin-bottom: 8px; /* 8px space between rows */
     min-height: 40px; /* Min height 40px as specified */
     border-bottom: none; /* No bottom border */
     border-top: none; /* No top border */
