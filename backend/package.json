@@ -8,6 +8,7 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "setup-db": "node scripts/setup-database.js",
+    "populate": "node scripts/populate-oshis-homonyms.js",
     "migrate": "node scripts/migrate-data.js"
   },
   "keywords": ["homonym", "dictionary", "api"],
