@@ -468,7 +468,8 @@ class HomonymApp {
                 return `
                     <button 
                         class="collection-item ${isActive ? 'active' : ''}" 
-                        onclick="app.switchCollection(${collection.id}, '${this.escapeHtml(collection.name)}')"
+                        data-collection-id="${collection.id}"
+                        data-collection-name="${this.escapeHtml(collection.name)}"
                     >
                         ${this.escapeHtml(collection.name)}
                     </button>
@@ -476,6 +477,16 @@ class HomonymApp {
             }).join('');
             
             this.uiManager.elements.collectionsList.innerHTML = collectionsHTML;
+            
+            // Add click event listeners to collection items
+            this.uiManager.elements.collectionsList.querySelectorAll('.collection-item').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const collectionId = parseInt(button.getAttribute('data-collection-id'));
+                    const collectionName = button.getAttribute('data-collection-name');
+                    this.switchCollection(collectionId, collectionName);
+                });
+            });
         } catch (error) {
             console.error('Failed to load collections list:', error);
             this.uiManager.showError('Failed to load collections');
