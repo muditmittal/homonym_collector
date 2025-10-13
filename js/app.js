@@ -7,7 +7,7 @@ class HomonymApp {
     constructor() {
         this.initializeServices();
         this.initializeEventListeners();
-        this.loadInitialData();
+        this.loadInitialData(); // This is now async but we don't await here
     }
 
     /**
@@ -15,8 +15,8 @@ class HomonymApp {
      */
     initializeServices() {
         this.dictionaryService = new DictionaryService();
-        this.storageService = new StorageService();
-        this.homonymService = new HomonymService(this.dictionaryService, this.storageService);
+        this.apiService = new ApiService();
+        this.homonymService = new HomonymService(this.dictionaryService, this.apiService);
         this.uiManager = new UIManager();
         
         console.log('Services initialized successfully');
@@ -70,20 +70,21 @@ class HomonymApp {
      */
     async loadInitialData() {
         try {
-            // Update UI with current data
-            this.updateUI();
+            this.uiManager.showLoading();
             
-            // Refresh definitions in background if needed
-            const updated = await this.homonymService.refreshAllDefinitions();
-            if (updated) {
-                console.log('Definitions updated, re-rendering');
-                this.updateUI();
-            }
+            // Wait for HomonymService to initialize (loads from API)
+            await this.homonymService.init();
+            
+            this.uiManager.hideLoading();
+            
+            // Update UI with loaded data
+            this.updateUI();
             
             console.log('Initial data loaded successfully');
         } catch (error) {
             console.error('Error loading initial data:', error);
-            this.uiManager.showError('Failed to load application data');
+            this.uiManager.hideLoading();
+            this.uiManager.showError('Failed to load application data. Make sure the backend is running at http://localhost:3000');
         }
     }
 
