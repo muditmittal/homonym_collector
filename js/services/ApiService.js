@@ -5,9 +5,31 @@
 
 class ApiService {
     constructor() {
-        // Use localhost for development, can be updated for production
-        this.baseUrl = 'http://localhost:3000/api';
+        // Auto-detect environment and use appropriate API URL
+        // In production, set VITE_API_URL environment variable or it will use Railway URL
+        this.baseUrl = this.getApiUrl();
         this.currentCollectionId = null;
+        
+        console.log('API Service initialized with baseUrl:', this.baseUrl);
+    }
+
+    /**
+     * Get the appropriate API URL based on environment
+     */
+    getApiUrl() {
+        // Check if there's a custom API URL set (for production)
+        if (window.API_URL) {
+            return window.API_URL;
+        }
+        
+        // Check if we're on localhost
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            return 'http://localhost:3000/api';
+        }
+        
+        // Production: You'll need to update this with your Railway URL after deployment
+        // For now, it will try to use a relative path or you can set window.API_URL
+        return window.API_URL || 'http://localhost:3000/api';
     }
 
     /**
