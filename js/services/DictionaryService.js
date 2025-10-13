@@ -1,13 +1,20 @@
 /**
  * Dictionary Service
- * Fetches word definitions and pronunciations from Merriam-Webster School Dictionary API
+ * Fetches word definitions and pronunciations from Merriam-Webster APIs
+ * Primary: School Dictionary (student-friendly)
+ * Fallback: Collegiate Dictionary (comprehensive)
  * Uses caching to improve performance and reduce API calls
  */
 
 class DictionaryService {
     constructor() {
+        // Primary: School Dictionary
         this.baseUrl = AppConfig.api.dictionaryBaseUrl;
         this.apiKey = AppConfig.api.dictionaryApiKey;
+        // Fallback: Collegiate Dictionary
+        this.collegiateBaseUrl = AppConfig.api.dictionaryCollegiateBaseUrl;
+        this.collegiateApiKey = AppConfig.api.dictionaryCollegiateApiKey;
+        
         this.timeout = AppConfig.api.timeout;
         this.cache = new Map(); // Runtime cache for API responses
         this.apiCallsInFlight = new Map(); // Prevents duplicate concurrent requests
@@ -83,9 +90,10 @@ class DictionaryService {
     }
 
     /**
-     * Internal: Fetch definition from Merriam-Webster API
+     * Internal: Fetch definition from Merriam-Webster API with Collegiate fallback
      */
     async _fetchDefinitionFromAPI(word) {
+        // Try School Dictionary first
         try {
             const controller = this.createTimeoutController();
             const url = `${this.baseUrl}${encodeURIComponent(word)}?key=${this.apiKey}`;
@@ -95,31 +103,65 @@ class DictionaryService {
                 headers: { 'Accept': 'application/json' }
             });
 
-            if (!response.ok) {
-                if (response.status === 404) {
-                    throw new Error(`Word "${word}" not found in dictionary`);
+            if (response.ok) {
+                const data = await response.json();
+                const definition = this.extractDefinition(data);
+
+                if (definition) {
+                    return definition;
                 }
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-
-            const data = await response.json();
-            const definition = this.extractDefinition(data);
-
-            if (!definition) {
-                // Check if we got suggestions instead
-                if (Array.isArray(data) && typeof data[0] === 'string') {
-                    throw new Error(`Word "${word}" not found. Did you mean: ${data.slice(0, 3).join(', ')}?`);
-                }
-                throw new Error(`No definition found for "${word}"`);
-            }
-
-            return definition;
+            
+            // If School Dictionary doesn't have it, try Collegiate
+            console.log(`Word "${word}" not in School Dictionary, trying Collegiate...`);
+            return await this._fetchFromCollegiate(word);
+            
         } catch (error) {
             if (error.name === 'AbortError') {
                 throw new Error(`Dictionary API timeout for "${word}"`);
             }
-            throw error;
+            
+            // Try Collegiate as fallback
+            console.log(`School Dictionary failed for "${word}", trying Collegiate...`);
+            try {
+                return await this._fetchFromCollegiate(word);
+            } catch (fallbackError) {
+                throw new Error(`Word "${word}" not found in any dictionary`);
+            }
         }
+    }
+
+    /**
+     * Internal: Fetch from Collegiate Dictionary
+     */
+    async _fetchFromCollegiate(word) {
+        const controller = this.createTimeoutController();
+        const url = `${this.collegiateBaseUrl}${encodeURIComponent(word)}?key=${this.collegiateApiKey}`;
+        
+        const response = await fetch(url, {
+            signal: controller.signal,
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) {
+            if (response.status === 404) {
+                throw new Error(`Word "${word}" not found in dictionary`);
+            }
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const definition = this.extractDefinition(data);
+
+        if (!definition) {
+            // Check if we got suggestions instead
+            if (Array.isArray(data) && typeof data[0] === 'string') {
+                throw new Error(`Word "${word}" not found. Did you mean: ${data.slice(0, 3).join(', ')}?`);
+            }
+            throw new Error(`No definition found for "${word}"`);
+        }
+
+        return definition;
     }
 
     /**
