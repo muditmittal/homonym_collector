@@ -846,11 +846,11 @@ header {
 .word-item {
     display: flex;
     align-items: flex-start; /* Top aligned as specified */
-    padding: 8px; /* 8px padding around content as specified */
+    padding: 8px; /* 8px padding around content as specified for readability */
     border-left: 2px solid #3439C5; /* 2px left border with exact color */
     background: #f9f9f9; /* Exact background color from Figma */
     border-radius: 0; /* No border radius for individual items */
-    margin: 0; /* Remove all margins */
+    margin: 0; /* No external margins */
     min-height: 40px; /* Min height 40px as specified */
     border-bottom: none; /* No bottom border */
     border-top: none; /* No top border */
@@ -878,7 +878,7 @@ header {
     padding: 0; /* Remove all padding */
     width: 160px; /* Keep existing width */
     flex-shrink: 0;
-    padding-right: 16px; /* Only right padding for spacing from definition */
+    padding-right: 16px; /* Right padding for spacing from definition */
     font-family: 'Wix Madefor Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
