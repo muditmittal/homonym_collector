@@ -194,9 +194,24 @@ class StorageService {
      * @returns {Array} Default homonyms
      */
     getDefaultHomonyms() {
-        // Return empty array - homonyms will be added by user
-        // This removes the hardcoded data from the storage layer
+        // Return empty array - homonyms will be added by user or populated by service
         return [];
+    }
+
+    /**
+     * Force reset to populate Oshi's collection
+     * This method clears existing data and forces re-population
+     */
+    forceResetForOshiCollection() {
+        try {
+            // Clear all existing data
+            this.clearAll();
+            console.log('Cleared all data to restore Oshi\'s Homonyms');
+            return true;
+        } catch (error) {
+            console.error('Failed to reset for Oshi collection:', error);
+            return false;
+        }
     }
 }
 

@@ -285,63 +285,215 @@ class HomonymService {
      * Populate default collection with curated homonyms
      */
     async populateDefaultCollection() {
-        console.log('Populating default homonym collection...');
+        console.log('Populating Oshi\'s Homonym collection...');
         
-        // Curated list of common homophone pairs
-        const curatedPairs = [
-            ['peace', 'piece'],
-            ['there', 'their', "they're"],
-            ['to', 'too', 'two'],
-            ['your', 'you\'re'],
-            ['its', 'it\'s'],
-            ['hear', 'here'],
-            ['right', 'write', 'rite'],
-            ['break', 'brake'],
+        // Set the collection name to "Oshi's Homonyms"
+        this.setCollectionName("Oshi's Homonyms");
+        
+        // Complete list of homonym groups from your original collection with your daughter
+        const curatedHomonyms = [
+            // Single letters
+            ['b', 'be', 'bee'],
+            ['c', 'sea', 'see'],
+            ['i', 'eye'],
+            ['o', 'oh'],
+            ['p', 'pea', 'pee'],
+            ['r', 'are'],
+            ['t', 'tea', 'tee'],
+            ['u', 'you'],
+            ['y', 'why'],
+            
+            // A words
+            ['ail', 'ale'],
+            ['ate', 'eight'],
+            
+            // B words
+            ['bail', 'bale'],
+            ['bare', 'bear'],
+            ['beat', 'beet'],
+            ['been', 'bean'],
+            ['berth', 'birth'],
+            ['blew', 'blue'],
+            ['board', 'bored'],
+            ['brake', 'break'],
+            ['bread', 'bred'],
             ['buy', 'by', 'bye'],
+            
+            // C words
             ['cell', 'sell'],
+            ['cent', 'sent', 'scent'],
+            ['cereal', 'serial'],
+            ['cheap', 'cheep'],
+            ['choose', 'chews'],
+            ['cite', 'sight', 'site'],
+            ['coarse', 'course'],
+            ['creak', 'creek'],
+            ['crews', 'cruise'],
+            
+            // D words
             ['dear', 'deer'],
+            ['dew', 'do', 'due'],
+            ['die', 'dye'],
+            ['doe', 'dough'],
+            
+            // E words
+            ['earn', 'urn'],
+            
+            // F words
             ['fair', 'fare'],
+            ['feat', 'feet'],
+            ['find', 'fined'],
+            ['fir', 'fur'],
+            ['flea', 'flee'],
+            ['flew', 'flu', 'flue'],
             ['flour', 'flower'],
+            ['for', 'four', 'fore'],
+            ['foul', 'fowl'],
+            
+            // G words
+            ['gait', 'gate'],
+            ['gene', 'jean'],
+            ['groan', 'grown'],
+            ['guest', 'guessed'],
+            
+            // H words
             ['hair', 'hare'],
+            ['hall', 'haul'],
+            ['heal', 'heel'],
+            ['hear', 'here'],
+            ['heard', 'herd'],
+            ['hi', 'high'],
+            ['him', 'hymn'],
             ['hole', 'whole'],
+            ['hour', 'our'],
+            
+            // I words
+            ['idle', 'idol'],
+            ['its', "it's"],
+            
+            // K words
+            ['kale', 'kail'],
+            ['knead', 'need'],
+            ['knew', 'new'],
+            ['knight', 'night'],
+            ['knot', 'not'],
             ['know', 'no'],
+            
+            // L words
+            ['lead', 'led'],
+            ['leak', 'leek'],
+            ['lean', 'lien'],
+            
+            // M words
+            ['made', 'maid'],
             ['mail', 'male'],
+            ['main', 'mane'],
             ['meat', 'meet'],
-            ['new', 'knew'],
+            ['might', 'mite'],
+            ['miner', 'minor'],
+            ['missed', 'mist'],
+            ['moose', 'mousse'],
+            
+            // N words
+            ['naval', 'navel'],
+            ['none', 'nun'],
+            
+            // O words
+            ['oar', 'or', 'ore'],
             ['one', 'won'],
+            
+            // P words
+            ['pail', 'pale'],
+            ['pain', 'pane'],
             ['pair', 'pear'],
+            ['peace', 'piece'],
+            ['peak', 'peek'],
+            ['pi', 'pie'],
+            ['plain', 'plane'],
+            ['pole', 'poll'],
+            ['poor', 'pour'],
+            ['pray', 'prey'],
+            ['principal', 'principle'],
+            
+            // R words
             ['rain', 'rein', 'reign'],
-            ['read', 'red'],
-            ['sea', 'see'],
+            ['raise', 'rays'],
+            ['read', 'red', 'reed'],
+            ['right', 'rite', 'write'],
+            ['road', 'rode'],
+            ['role', 'roll'],
+            ['root', 'route'],
+            
+            // S words
+            ['sail', 'sale'],
+            ['scene', 'seen'],
+            ['seam', 'seem'],
+            ['sew', 'so', 'sow'],
             ['son', 'sun'],
+            ['stair', 'stare'],
+            ['stationary', 'stationery'],
+            ['steal', 'steel'],
+            ['suite', 'sweet'],
+            
+            // T words
             ['tail', 'tale'],
+            ['team', 'teem'],
+            ['tear', 'tier'],
+            ['their', 'there', "they're"],
+            ['threw', 'through'],
+            ['throne', 'thrown'],
+            ['tide', 'tied'],
+            ['to', 'too', 'two'],
+            ['toe', 'tow'],
+            
+            // W words
+            ['wade', 'weighed'],
+            ['waist', 'waste'],
             ['wait', 'weight'],
+            ['waive', 'wave'],
+            ['ware', 'wear', 'where'],
+            ['way', 'weigh'],
             ['weak', 'week'],
-            ['wear', 'where'],
-            ['weather', 'whether']
+            ['weather', 'whether'],
+            ['which', 'witch'],
+            ['wood', 'would']
         ];
 
-        // Add each pair as a homonym group
-        for (const words of curatedPairs) {
+        console.log(`Adding ${curatedHomonyms.length} homonym groups...`);
+        
+        // Add each group as a homonym
+        for (let i = 0; i < curatedHomonyms.length; i++) {
+            const words = curatedHomonyms[i];
+            
             try {
                 const wordsWithDefinitions = [];
                 
+                // Get definitions for all words in the group
                 for (const word of words) {
                     const definition = await this.dictionaryService.getDefinition(word);
                     wordsWithDefinitions.push({ word, definition });
                 }
                 
+                // Get pronunciation for the first word
                 const pronunciation = await this.dictionaryService.getPronunciation(words[0]);
+                
+                // Create the homonym group
                 this.addHomonymGroup(wordsWithDefinitions, pronunciation);
                 
+                // Log progress
+                if ((i + 1) % 10 === 0 || i === curatedHomonyms.length - 1) {
+                    console.log(`Progress: ${i + 1}/${curatedHomonyms.length} homonym groups added`);
+                }
+                
                 // Small delay to avoid overwhelming the API
-                await new Promise(resolve => setTimeout(resolve, 100));
+                await new Promise(resolve => setTimeout(resolve, 150));
+                
             } catch (error) {
                 console.warn(`Failed to add homonym group for [${words.join(', ')}]:`, error);
             }
         }
         
-        console.log(`Populated ${this.homonyms.length} homonym groups`);
+        console.log(`Successfully populated Oshi's Homonyms with ${this.homonyms.length} groups`);
     }
 }
 

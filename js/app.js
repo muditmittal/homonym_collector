@@ -435,6 +435,52 @@ class HomonymApp {
             this.uiManager.showSuccess('Collection deleted');
         }
     }
+
+    /**
+     * Restore Oshi's Homonyms collection
+     * This method forces a reset and populates the original collection
+     */
+    async restoreOshiCollection() {
+        const confirmText = "This will restore Oshi's original homonym collection (78+ groups) and replace any existing data. Continue?";
+        
+        if (!confirm(confirmText)) {
+            return;
+        }
+
+        try {
+            this.uiManager.showLoading();
+            this.uiManager.showSuccess('Restoring Oshi\'s Homonyms... This may take a few minutes.');
+            
+            // Reset storage and force re-population
+            this.storageService.forceResetForOshiCollection();
+            
+            // Reinitialize the homonym service which will trigger population
+            this.homonymService = new HomonymService(this.dictionaryService, this.storageService);
+            
+            // Wait for population to complete
+            await new Promise(resolve => {
+                const checkPopulation = () => {
+                    const stats = this.homonymService.getCollectionStats();
+                    if (stats.totalHomonyms > 50) { // Most groups should be loaded
+                        resolve();
+                    } else {
+                        setTimeout(checkPopulation, 2000);
+                    }
+                };
+                checkPopulation();
+            });
+            
+            // Update UI
+            this.updateUI();
+            this.uiManager.showSuccess(`Successfully restored Oshi's Homonyms with ${this.homonymService.getHomonyms().length} groups!`);
+            
+        } catch (error) {
+            console.error('Error restoring Oshi collection:', error);
+            this.uiManager.showError('Failed to restore Oshi\'s collection. Please try again.');
+        } finally {
+            this.uiManager.hideLoading();
+        }
+    }
 }
 
 // Initialize the application when DOM is loaded

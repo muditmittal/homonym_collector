@@ -689,6 +689,15 @@ header {
     background: #f8d7da;
 }
 
+.dropdown-menu button.restore-option {
+    color: #28a745;
+}
+
+.dropdown-menu button.restore-option:hover {
+    background: #d4edda;
+    color: #155724;
+}
+
 .count {
     background: #667eea;
     color: white;
