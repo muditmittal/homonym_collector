@@ -5,7 +5,7 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Scope One', Georgia, 'Times New Roman', serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     color: #333;
@@ -246,7 +246,7 @@ header {
 
 .suggestion-word-item .word-info h3 {
     margin: 0;
-    font-size: 1.2rem;
+    font-size: 20pt; /* Match main cards */
     color: #333;
     font-weight: 700; /* Bold text */
     width: 160px; /* Fixed width for consistent alignment */
@@ -258,7 +258,7 @@ header {
 .suggestion-word-item .word-info .word-definition {
     margin: 0;
     color: #555; /* Darker text for better readability */
-    font-size: 0.95rem;
+    font-size: 16pt; /* Match main cards */
     line-height: 1.5;
     flex: 1; /* Take remaining space */
     padding-top: 0.1rem; /* Slight top padding to align with word */
@@ -358,7 +358,7 @@ header {
 .editable-word-row .word-input {
     border: none;
     background: transparent;
-    font-size: 1.2rem;
+    font-size: 20pt; /* Match word size */
     font-weight: 700; /* Bold text */
     color: #333;
     width: 160px; /* Fixed width to match layout */
@@ -367,6 +367,7 @@ header {
     outline: none;
     flex-shrink: 0;
     padding-right: 1rem;
+    font-family: 'Scope One', Georgia, 'Times New Roman', serif;
 }
 
 .editable-word-row .word-input::placeholder {
@@ -759,7 +760,8 @@ header {
 .homonym-pronunciation {
     font-weight: 600;
     color: #667eea;
-    font-size: 1rem;
+    font-size: 16pt; /* 16pt as requested */
+    font-style: italic;
 }
 
 .btn-delete {
@@ -857,7 +859,7 @@ header {
 
 .word-info h3 {
     color: #333;
-    font-size: 1.2rem;
+    font-size: 20pt; /* 20pt as requested */
     margin: 0;
     width: 160px; /* Fixed width for consistent alignment */
     font-weight: 700; /* Bold text */
@@ -869,7 +871,7 @@ header {
 .word-definition {
     color: #555; /* Darker text for better readability */
     line-height: 1.5;
-    font-size: 0.95rem;
+    font-size: 16pt; /* 16pt as requested */
     margin: 0;
     flex: 1; /* Take remaining space */
     padding-top: 0.1rem; /* Slight top padding to align with word */
