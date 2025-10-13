@@ -377,13 +377,28 @@ class HomonymApp {
     /**
      * Create a new collection
      */
-    createNewCollection() {
+    async createNewCollection() {
         const name = prompt('Enter name for the new collection:', 'New Collection');
-        if (name && name.trim()) {
-            this.homonymService.clearCollection();
-            this.homonymService.setCollectionName(name.trim());
-            this.updateUI();
-            this.uiManager.showSuccess(`Created new collection: ${name}`);
+        
+        if (!name || !name.trim()) {
+            return; // User cancelled or entered empty name
+        }
+        
+        try {
+            this.uiManager.showLoading();
+            
+            // Create new collection via API
+            const newCollection = await this.apiService.createCollection(name.trim());
+            
+            // Switch to the new collection
+            await this.switchCollection(newCollection.id, newCollection.name);
+            
+            this.uiManager.hideLoading();
+            this.uiManager.showSuccess(`Created collection: ${name.trim()}`);
+        } catch (error) {
+            console.error('Failed to create collection:', error);
+            this.uiManager.hideLoading();
+            this.uiManager.showError('Failed to create collection');
         }
     }
 
