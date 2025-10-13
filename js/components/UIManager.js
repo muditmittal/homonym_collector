@@ -231,7 +231,7 @@ class UIManager {
                             <i class="fas fa-plus"></i> Add word
                         </button>
                         <button class="btn-add suggestion-add-btn" onclick="app.saveHomonymGroup('${this.escapeHtml(originalWord)}', [])">
-                            <i class="fas fa-save"></i> Save homonym
+                            <i class="fas fa-save"></i> Save homonym to collection
                         </button>
                     </div>
                 </div>
@@ -268,7 +268,7 @@ class UIManager {
         this.elements.suggestions.innerHTML = `
             <div class="homonym-group suggestion-group">
                 <div class="homonym-header">
-                    <span class="homonym-pronunciation">Homonym suggestions for "${this.escapeHtml(this.capitalizeWord(originalWord))}"</span>
+                    <span class="homonym-pronunciation">Suggestions for "${this.escapeHtml(this.capitalizeWord(originalWord))}"</span>
                     <button class="btn-delete" onclick="app.closeSuggestions()">
                         <i class="fas fa-times"></i>
                         <div class="custom-tooltip">Close suggestions</div>
@@ -286,7 +286,7 @@ class UIManager {
                             <i class="fas fa-plus"></i> Add word
                         </button>
                         <button class="btn-add suggestion-add-btn" onclick="app.saveHomonymGroup('${this.escapeHtml(originalWord)}', ${JSON.stringify(homonymSuggestions)})">
-                            <i class="fas fa-save"></i> Save homonym
+                            <i class="fas fa-save"></i> Save homonym to collection
                         </button>
                     </div>
                     <div class="mw-attribution">

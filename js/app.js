@@ -29,6 +29,7 @@ class HomonymApp {
         // Search functionality
         this.uiManager.elements.searchInput.addEventListener('input', (e) => {
             this.handleSearchInput(e.target.value);
+            this.toggleResetButton(e.target.value); // Toggle reset button visibility
         });
 
         this.uiManager.elements.searchInput.addEventListener('keypress', (e) => {
@@ -40,6 +41,11 @@ class HomonymApp {
         // Add button
         this.uiManager.elements.addButton.addEventListener('click', () => {
             this.handleAddHomonym();
+        });
+
+        // Reset button
+        document.getElementById('resetButton').addEventListener('click', () => {
+            this.handleReset();
         });
 
         // Find homonyms button (fallback)
@@ -87,6 +93,31 @@ class HomonymApp {
             this.uiManager.hideLoading();
             this.uiManager.showError('Failed to load application data. Make sure the backend is running at http://localhost:3000');
         }
+    }
+
+    /**
+     * Toggle reset button visibility based on input content
+     * @param {string} searchValue - Current search input value
+     */
+    toggleResetButton(searchValue) {
+        const resetButton = document.getElementById('resetButton');
+        if (searchValue && searchValue.trim().length > 0) {
+            resetButton.classList.remove('hidden');
+        } else {
+            resetButton.classList.add('hidden');
+        }
+    }
+
+    /**
+     * Handle reset action - clear search and show all homonyms
+     */
+    handleReset() {
+        this.uiManager.clearSearch();
+        this.uiManager.hideSuggestions();
+        this.uiManager.hideNoResults();
+        this.showAllHomonyms();
+        // Hide reset button after clearing
+        this.toggleResetButton('');
     }
 
     /**
