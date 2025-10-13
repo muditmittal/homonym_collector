@@ -5,7 +5,7 @@
 }
 
 body {
-    font-family: 'Scope One', Georgia, 'Times New Roman', serif;
+    font-family: 'Wix Madefor Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     color: #333;
@@ -367,7 +367,7 @@ header {
     outline: none;
     flex-shrink: 0;
     padding-right: 1rem;
-    font-family: 'Scope One', Georgia, 'Times New Roman', serif;
+    font-family: 'Wix Madefor Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .editable-word-row .word-input::placeholder {
