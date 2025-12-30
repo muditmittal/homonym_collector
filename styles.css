@@ -875,6 +875,90 @@ header {
     box-shadow: none;
 }
 
+/* Conflict resolution styles */
+.conflict-group {
+    border-color: #ffc107;
+    background: #fffbf0;
+}
+
+.conflict-notice {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.conflict-notice i {
+    color: #856404;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.conflict-notice p {
+    color: #856404;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* Existing word styling in conflict mode */
+.existing-word {
+    background: #f8f9fa;
+    border-left-color: #6c757d;
+}
+
+.existing-word .suggestion-checkbox {
+    opacity: 0.6;
+}
+
+.existing-badge {
+    background: #6c757d;
+    color: white;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 8px;
+    font-weight: 500;
+}
+
+/* New word styling in conflict mode */
+.new-word {
+    background: #f0fff4;
+    border-left-color: #28a745;
+}
+
+/* Conflict action button styling */
+.conflict-action-btn {
+    background: #ffc107;
+    color: #212529;
+    font-weight: 600;
+}
+
+.conflict-action-btn:hover {
+    background: #e0a800;
+}
+
+/* Highlighted existing group in main collection */
+.homonym-group.highlighted {
+    border-color: #ffc107;
+    background: #fffbf0;
+    box-shadow: 0 4px 20px rgba(255, 193, 7, 0.3);
+    animation: highlightPulse 2s ease-in-out;
+}
+
+@keyframes highlightPulse {
+    0%, 100% { 
+        box-shadow: 0 4px 20px rgba(255, 193, 7, 0.3);
+    }
+    50% { 
+        box-shadow: 0 8px 30px rgba(255, 193, 7, 0.5);
+    }
+}
+
 .homonym-header {
     display: flex;
     justify-content: space-between;

@@ -11,6 +11,9 @@ class HomonymService {
         this.collectionName = '';
         this.collectionId = null;
         
+        // Initialize homophone API service
+        this.homophoneAPI = new HomophoneAPI();
+        
         this.init();
     }
 
@@ -178,6 +181,54 @@ class HomonymService {
     }
 
     /**
+     * Find existing homonym group that contains the given word
+     * @param {string} word - Word to search for
+     * @returns {Object|null} Existing homonym group or null
+     */
+    findExistingHomonymGroup(word) {
+        const normalizedWord = word.toLowerCase().trim();
+        return this.homonyms.find(homonym => 
+            homonym.words.some(w => w.word.toLowerCase() === normalizedWord)
+        ) || null;
+    }
+
+    /**
+     * Check if suggested words already exist in the same homonym group
+     * @param {string} searchWord - The word that was searched
+     * @param {Array} suggestions - Array of suggested words
+     * @returns {Object} Conflict analysis result
+     */
+    analyzeHomonymConflict(searchWord, suggestions) {
+        const existingGroup = this.findExistingHomonymGroup(searchWord);
+        
+        if (!existingGroup) {
+            return { hasConflict: false, existingGroup: null, newWords: suggestions };
+        }
+
+        const existingWords = existingGroup.words.map(w => w.word.toLowerCase());
+        const suggestedWords = suggestions.map(s => s.word.toLowerCase());
+        
+        // Find words that are in suggestions but not in existing group
+        const newWords = suggestions.filter(s => 
+            !existingWords.includes(s.word.toLowerCase())
+        );
+        
+        // Check if all suggestions are already in the existing group
+        const allWordsExist = suggestedWords.every(word => 
+            existingWords.includes(word)
+        );
+
+        return {
+            hasConflict: true,
+            existingGroup,
+            newWords,
+            allWordsExist,
+            existingWordCount: existingWords.length,
+            suggestedWordCount: suggestedWords.length
+        };
+    }
+
+    /**
      * Find homonym suggestions for a word
      */
     async findHomonymSuggestions(word) {
@@ -201,8 +252,8 @@ class HomonymService {
             this.dictionaryService.getPronunciation(normalizedWord)
         ]);
         
-        // Get homophones from database
-        const homophones = HomonymDatabase.getHomophones(normalizedWord);
+        // Get homophones from API (with local database fallback)
+        const homophones = await this.homophoneAPI.findHomophones(normalizedWord);
         const suggestions = [];
 
         // Add original word first

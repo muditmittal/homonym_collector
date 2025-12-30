@@ -190,12 +190,15 @@ class UIManager {
      * Render homonym suggestions
      * @param {string} originalWord - Original searched word
      * @param {Array} suggestions - Array of suggestion objects
+     * @param {Object} conflict - Conflict analysis result
      */
-    renderSuggestions(originalWord, suggestions) {
+    renderSuggestions(originalWord, suggestions, conflict = null) {
         const isError = suggestions.length === 1 && suggestions[0].isError;
         
         if (isError) {
             this.renderErrorSuggestions(originalWord, suggestions[0]);
+        } else if (conflict && conflict.hasConflict) {
+            this.renderConflictSuggestions(originalWord, suggestions, conflict);
         } else {
             this.renderValidSuggestions(originalWord, suggestions);
         }
@@ -237,6 +240,88 @@ class UIManager {
                 </div>
             </div>
         `;
+    }
+
+    /**
+     * Render conflict suggestions when word exists in collection
+     * @param {string} originalWord - Original word
+     * @param {Array} suggestions - All suggestions
+     * @param {Object} conflict - Conflict analysis
+     */
+    renderConflictSuggestions(originalWord, suggestions, conflict) {
+        const { existingGroup, newWords, allWordsExist } = conflict;
+        
+        // Sort all suggestions alphabetically
+        const sortedSuggestions = [...suggestions].sort((a, b) => 
+            a.word.toLowerCase().localeCompare(b.word.toLowerCase())
+        );
+
+        // Create HTML for existing words (checked, disabled) and new words (checked, enabled)
+        const suggestionsHTML = sortedSuggestions.map(suggestion => {
+            const capitalizedWord = this.capitalizeWord(suggestion.word);
+            const isExisting = existingGroup.words.some(w => 
+                w.word.toLowerCase() === suggestion.word.toLowerCase()
+            );
+            
+            return `
+            <div class="word-item suggestion-word-item ${isExisting ? 'existing-word' : 'new-word'}">
+                <input type="checkbox" 
+                       ${isExisting ? 'checked disabled' : 'checked'} 
+                       data-word="${this.escapeHtml(suggestion.word)}" 
+                       data-existing="${isExisting}"
+                       class="suggestion-checkbox">
+                <div class="word-info">
+                    <h3>${this.escapeHtml(capitalizedWord)} ${isExisting ? '<span class="existing-badge">In Collection</span>' : ''}</h3>
+                    <p class="word-definition">${this.formatDefinition(suggestion.definition || 'Loading definition...')}</p>
+                </div>
+            </div>
+        `}).join('');
+
+        // Determine button text and action based on situation
+        let buttonText, buttonAction, conflictMessage;
+        
+        if (allWordsExist && newWords.length === 0) {
+            buttonText = '✏️ Edit existing homonym group';
+            buttonAction = `app.editHomonymGroup(${existingGroup.id})`;
+            conflictMessage = `All suggested words are already in your collection. You can edit the existing group to add or remove words.`;
+        } else {
+            buttonText = `📝 Add ${newWords.length} new word${newWords.length !== 1 ? 's' : ''} to existing group`;
+            buttonAction = `app.updateHomonymGroup(${existingGroup.id}, '${this.escapeHtml(originalWord)}')`;
+            conflictMessage = `This word is already in your collection. ${newWords.length} new homophone${newWords.length !== 1 ? 's' : ''} found.`;
+        }
+
+        this.elements.suggestions.innerHTML = `
+            <div class="homonym-group suggestion-group conflict-group">
+                <div class="homonym-header">
+                    <span class="homonym-pronunciation">Suggestions for "${this.escapeHtml(this.capitalizeWord(originalWord))}"</span>
+                    <button class="btn-delete" onclick="app.closeSuggestions()">
+                        <i class="fas fa-times"></i>
+                        <div class="custom-tooltip">Close suggestions</div>
+                    </button>
+                </div>
+                <div class="words-container">
+                    <div class="conflict-notice">
+                        <i class="fas fa-info-circle"></i>
+                        <p>${conflictMessage}</p>
+                    </div>
+                    ${suggestionsHTML}
+                    <div class="manual-actions">
+                        <button class="btn-add-word" onclick="app.addWordRow()">
+                            <i class="fas fa-plus"></i> Add word
+                        </button>
+                        <button class="btn-add suggestion-add-btn conflict-action-btn" onclick="${buttonAction}">
+                            ${buttonText}
+                        </button>
+                    </div>
+                    <div class="mw-attribution">
+                        Definitions powered by <a href="https://dictionaryapi.com/" target="_blank" rel="noopener">Merriam-Webster's School Dictionary</a>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Highlight the existing group in the main collection
+        this.highlightExistingGroup(existingGroup.id);
     }
 
     /**
@@ -295,6 +380,31 @@ class UIManager {
                 </div>
             </div>
         `;
+    }
+
+    /**
+     * Highlight existing homonym group in the main collection
+     * @param {number} groupId - ID of the group to highlight
+     */
+    highlightExistingGroup(groupId) {
+        // Remove any existing highlights
+        document.querySelectorAll('.homonym-group.highlighted').forEach(el => {
+            el.classList.remove('highlighted');
+        });
+
+        // Add highlight to the target group
+        const targetGroup = document.querySelector(`[data-id="${groupId}"]`);
+        if (targetGroup) {
+            targetGroup.classList.add('highlighted');
+            
+            // Scroll into view smoothly
+            setTimeout(() => {
+                targetGroup.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+            }, 100);
+        }
     }
 
     /**

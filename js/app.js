@@ -159,7 +159,11 @@ class HomonymApp {
             this.uiManager.showLoading();
             
             const suggestions = await this.homonymService.findHomonymSuggestions(word);
-            this.uiManager.renderSuggestions(word, suggestions);
+            
+            // Analyze for conflicts with existing groups
+            const conflict = this.homonymService.analyzeHomonymConflict(word, suggestions);
+            
+            this.uiManager.renderSuggestions(word, suggestions, conflict);
             
             // Fetch pronunciations in background
             this.fetchPronunciationsInBackground(suggestions);
@@ -223,6 +227,99 @@ class HomonymApp {
         this.uiManager.renderHomonyms(homonyms);
         this.uiManager.updateCollectionName(collectionName);
         this.uiManager.updateCollectionCount(homonyms.length, false);
+    }
+
+    /**
+     * Edit an existing homonym group
+     * @param {number} groupId - ID of the homonym group to edit
+     */
+    editHomonymGroup(groupId) {
+        // For now, just close suggestions and highlight the group
+        // Future: implement inline editing
+        this.uiManager.hideSuggestions();
+        this.uiManager.clearSearch();
+        
+        // Scroll to and highlight the group
+        const targetGroup = document.querySelector(`[data-id="${groupId}"]`);
+        if (targetGroup) {
+            targetGroup.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            targetGroup.classList.add('highlighted');
+            
+            // Show a helpful message
+            this.uiManager.showSuccess('Homonym group highlighted below. You can delete words or the entire group using the delete button.');
+            
+            // Remove highlight after a few seconds
+            setTimeout(() => {
+                targetGroup.classList.remove('highlighted');
+            }, 5000);
+        }
+    }
+
+    /**
+     * Update an existing homonym group with new words
+     * @param {number} groupId - ID of the group to update
+     * @param {string} originalWord - The original searched word
+     */
+    async updateHomonymGroup(groupId, originalWord) {
+        try {
+            this.uiManager.showLoading();
+            
+            // Get selected new words from checkboxes
+            const checkboxes = document.querySelectorAll('.suggestion-checkbox:checked:not([disabled])');
+            const newWords = [];
+            
+            checkboxes.forEach(checkbox => {
+                const word = checkbox.getAttribute('data-word');
+                const isExisting = checkbox.getAttribute('data-existing') === 'true';
+                
+                if (word && !isExisting) {
+                    // Find the word's definition from the UI
+                    const wordItem = checkbox.closest('.suggestion-word-item');
+                    const definition = wordItem.querySelector('.word-definition').textContent;
+                    newWords.push({ word, definition });
+                }
+            });
+
+            if (newWords.length === 0) {
+                this.uiManager.showError('No new words selected to add to the homonym group.');
+                return;
+            }
+
+            // Get the existing group and add new words
+            const existingGroup = this.homonymService.getHomonymById(groupId);
+            if (!existingGroup) {
+                this.uiManager.showError('Homonym group not found.');
+                return;
+            }
+
+            // Add new words to the existing group
+            const updatedWords = [...existingGroup.words, ...newWords];
+            const success = this.homonymService.updateHomonymGroup(groupId, {
+                words: updatedWords
+            });
+
+            if (success) {
+                // Update UI
+                this.updateUI();
+                this.uiManager.clearSearch();
+                this.uiManager.hideSuggestions();
+                
+                // Highlight the updated group
+                setTimeout(() => {
+                    this.uiManager.highlightExistingGroup(groupId);
+                }, 100);
+                
+                this.uiManager.showSuccess(`Added ${newWords.length} new word${newWords.length !== 1 ? 's' : ''} to homonym group!`);
+            } else {
+                this.uiManager.showError('Failed to update homonym group.');
+            }
+            
+        } catch (error) {
+            console.error('Error updating homonym group:', error);
+            this.uiManager.showError('Failed to update homonym group. Please try again.');
+        } finally {
+            this.uiManager.hideLoading();
+        }
     }
 
     /**
