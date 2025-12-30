@@ -1,11 +1,14 @@
 // Production API Configuration
-// Update this file with your Railway backend URL after deployment
+// Automatically detects environment and uses appropriate API URL
 
-// Set your production API URL here:
-// window.API_URL = 'https://your-app-name.up.railway.app/api';
-
-// For now, it uses localhost in development and will need to be updated for production
-window.API_URL = window.API_URL || 'http://localhost:3000/api';
+// In production (Vercel), use relative path to serverless functions
+// In development (localhost), use local backend server
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    window.API_URL = 'http://localhost:3000/api';
+} else {
+    // Production: use relative path (Vercel will handle routing)
+    window.API_URL = '/api';
+}
 
 console.log('API Configuration loaded. Current API URL:', window.API_URL);
 
